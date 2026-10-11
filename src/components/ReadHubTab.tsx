@@ -71,6 +71,7 @@ export const ReadHubTab: React.FC<ReadHubTabProps> = ({
   const [activeHint, setActiveHint] = useState<string | null>(null);
   const [isLoadingHint, setIsLoadingHint] = useState(false);
   const [timerSeconds, setTimerSeconds] = useState(40);
+  const [selectedObjYear, setSelectedObjYear] = useState<string>('All Years');
 
   // Theory State
   const [currentTheoryIdx, setCurrentTheoryIdx] = useState(0);
@@ -115,12 +116,20 @@ export const ReadHubTab: React.FC<ReadHubTabProps> = ({
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const aiChatScrollRef = useRef<HTMLDivElement>(null);
 
-  // Question lists with dynamic active novel questions
+  // Question lists with dynamic active novel questions and year filtering
   const baseQuestions = EXPANDED_OBJ_QUESTIONS[selectedSubject] || EXPANDED_OBJ_QUESTIONS.English;
-  const questions =
+  const rawQuestions =
     selectedSubject === 'Novel'
       ? getQuestionsForNovel(activeNovel.id, EXPANDED_OBJ_QUESTIONS.Novel)
       : baseQuestions;
+
+  const questions =
+    selectedObjYear === 'All Years'
+      ? rawQuestions
+      : rawQuestions.filter((q) => q.year?.includes(selectedObjYear)).length > 0
+      ? rawQuestions.filter((q) => q.year?.includes(selectedObjYear))
+      : rawQuestions;
+
   const currentQ = questions[currentQuestionIdx] || questions[0];
 
   const theoryList =
@@ -462,7 +471,36 @@ export const ReadHubTab: React.FC<ReadHubTabProps> = ({
                     : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                 }`}
               >
-                {sub === 'Novel' ? '📖 The Life Changer' : sub}
+                {sub === 'Novel' ? `📖 ${activeNovel.title}` : sub}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Year Filter Bar for OBJ Drill */}
+        {activeMode === 'obj' && (
+          <div className="pt-2 border-t border-slate-100 flex items-center gap-1.5 overflow-x-auto no-scrollbar text-xs font-bold">
+            <span className="text-[10px] text-slate-400 uppercase tracking-wider shrink-0 mr-1">
+              Year:
+            </span>
+            {['All Years', '2024', '2023', '2022', '2021', '2020'].map((yr) => (
+              <button
+                key={yr}
+                onClick={() => {
+                  setSelectedObjYear(yr);
+                  setCurrentQuestionIdx(0);
+                  setSelectedAnswer(null);
+                  setIsAnswerSubmitted(false);
+                  setActiveHint(null);
+                  setTimerSeconds(40);
+                }}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition whitespace-nowrap cursor-pointer ${
+                  selectedObjYear === yr
+                    ? 'bg-amber-400 text-slate-950 font-black shadow-xs'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                }`}
+              >
+                {yr === 'All Years' ? '🌟 All Years' : `🗓️ ${yr}`}
               </button>
             ))}
           </div>
@@ -477,7 +515,7 @@ export const ReadHubTab: React.FC<ReadHubTabProps> = ({
             <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-black bg-emerald-950 text-white px-2.5 py-1 rounded-lg">
-                  {selectedSubject === 'Novel' ? 'THE LIFE CHANGER' : selectedSubject} Q{currentQuestionIdx + 1}/{questions.length}
+                  {selectedSubject === 'Novel' ? activeNovel.title.toUpperCase() : selectedSubject} Q{currentQuestionIdx + 1}/{questions.length}
                 </span>
                 <span className="text-xs font-bold text-emerald-800 font-mono bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                   Score: {score} pts
@@ -889,6 +927,35 @@ export const ReadHubTab: React.FC<ReadHubTabProps> = ({
                 + New Novel
               </button>
             </div>
+          </div>
+
+          {/* Quick Novel Selection Pills */}
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 text-xs">
+            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider shrink-0 mr-1">
+              Select Novel:
+            </span>
+            {availableNovels.map((n) => {
+              const isSelected = activeNovel.id === n.id;
+              return (
+                <button
+                  key={n.id}
+                  onClick={() => setActiveNovelId(n.id)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 ${
+                    isSelected
+                      ? 'bg-amber-500 text-slate-950 font-black shadow-xs ring-2 ring-amber-400/40'
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                  }`}
+                >
+                  <span>{n.id === 'the-lekki-headmaster' ? '⭐' : '📖'}</span>
+                  <span>{n.title}</span>
+                  {n.id === 'the-lekki-headmaster' && (
+                    <span className="bg-slate-900 text-amber-300 text-[9px] px-1.5 py-0.5 rounded font-black">
+                      LATEST
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
 
           {/* Novel Hero Banner */}

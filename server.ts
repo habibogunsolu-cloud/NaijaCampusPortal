@@ -20,30 +20,43 @@ const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
 });
 
-// Counselor AI Chat Endpoint with Ultra-Fast gemini-3.1-flash-lite
+// Counselor AI Chat Endpoint with gemini-3.8-flash
 app.post('/api/counselor', async (req, res) => {
   const msg = (req.body?.message || '').trim().toLowerCase();
+  const { message, history } = req.body;
+
+  if (!message) {
+    return res.status(400).json({ error: 'Message is required' });
+  }
+
+  // Restrictions check (expo, runs, hacking, abuse)
+  if (
+    msg.includes('expo') ||
+    msg.includes('runz') ||
+    msg.includes('upgrade score') ||
+    msg.includes('hack') ||
+    msg.includes('leak question') ||
+    msg.includes('cheat')
+  ) {
+    return res.json({
+      reply: "⚠️ **Official Policy Notice:** Counselor Chioma does NOT assist with exam runs, expo, or illegal score upgrades. JAMB CBT scores cannot be altered externally. Focus on syllabus mastery, official 4-subject combos, and genuine cutoff benchmarks!",
+    });
+  }
 
   try {
-    const { message, history } = req.body;
-
-    if (!message) {
-      return res.status(400).json({ error: 'Message is required' });
-    }
-
-    const systemInstruction = `You are Counselor Chioma, an elite, lightning-fast Nigerian university & JAMB admissions advisor.
-Answer directly, warmly, and concisely in 2-4 sentences or quick bullet points.
-Guidelines:
-- Health Sciences (Medicine, Nursing, Pharmacy): 4 JAMB subjects = English, Biology, Chemistry, Physics.
-- Law: Literature in English is strictly compulsory.
-- Engineering/Computer Science: Mathematics & Physics are mandatory.
-- State Universities (LASU, DELSU, OOU) and Polytechnics (YabaTech, Ilaro) are great alternatives for scores 160-220.
-- Mention Catchment Area advantages when relevant.
-- If the user greets (e.g., 'hi', 'hello', 'how far'), greet them warmly as Counselor Chioma and ask what course or university they are preparing for.
-Keep responses concise, super helpful, and lightning fast.`;
+    const systemInstruction = `You are Counselor Chioma, an elite, warm, highly knowledgeable Nigerian university, polytechnic & JAMB admissions advisor for Nigerian students and candidates for the 2026/2027 academic session.
+CRITICAL INSTRUCTIONS:
+1. ALWAYS respond directly and contextually to ANY message or question the student sends! Never give a generic template if they ask a specific question.
+2. If they ask follow-ups ("Why", "How", "What do you mean?", "What if", etc.), answer based on conversation history.
+3. If they ask about money/earnings (like Monetag, PayPal, or bank accounts at age 16 in Nigeria): explain kindly that in Nigeria, international payment platforms like PayPal and independent commercial bank accounts require being 18+ (with BVN/NIN). A 16-year-old student can legally receive funds through a trusted parent or guardian's bank/PayPal account, or use parent-guided teen accounts. Encourage them to stay focused on their studies.
+4. If they ask about the age requirement for JAMB/universities: explain that the Federal Ministry of Education set guidelines regarding age 16 for university admission eligibility, and emphasize preparing well for their UTME.
+5. RESTRICTIONS & POLICY:
+   - Strictly refuse any requests for exam runs, expo, hacking JAMB, or illegal score upgrades. Tell them firmly but politely that JAMB CBT is automated and secure, and anyone offering score upgrade is a scammer.
+   - Maintain a friendly, supportive Nigerian sisterly mentor tone ("scholar", "my friend").
+Keep responses concise, clear, and easy to read on mobile.`;
 
     const contents = [
-      ...(history || []).slice(-4).map((h: { role: string; content: string }) => ({
+      ...(history || []).slice(-6).map((h: { role: string; content: string }) => ({
         role: h.role === 'user' ? 'user' : 'model',
         parts: [{ text: h.content }],
       })),
@@ -53,13 +66,13 @@ Keep responses concise, super helpful, and lightning fast.`;
       },
     ];
 
-    // 12-second timeout safeguard to allow standard Gemini generation
+    // 8-second timeout safeguard to allow standard Gemini generation without hanging
     const timeoutPromise = new Promise<{ text: string }>((_, reject) =>
-      setTimeout(() => reject(new Error('TIMEOUT')), 12000)
+      setTimeout(() => reject(new Error('TIMEOUT')), 8000)
     );
 
     const apiPromise = ai.models.generateContent({
-      model: 'gemini-3.1-flash-lite',
+      model: 'gemini-3.8-flash',
       contents,
       config: {
         systemInstruction,
@@ -67,17 +80,33 @@ Keep responses concise, super helpful, and lightning fast.`;
       },
     });
 
-    const response = await Promise.race([apiPromise, timeoutPromise]) as { text?: string };
-    const reply = response.text || "Hello! For top Nigerian universities, what course or institution are you targeting? I can give you the exact 4 JAMB subjects, cut-off marks, and admission strategy right now.";
+    const response = (await Promise.race([apiPromise, timeoutPromise])) as { text?: string };
+    const reply = response.text || "Hello scholar! How is your exam preparation going? Tell me what course, score, or institution you are targeting, and I will give you the exact 4 JAMB subjects, cut-off marks, and admission strategy right now.";
 
     res.json({ reply });
-  } catch (error) {
-    console.log('Gemini Fast Fallback triggered:', error);
-    // Instant smart response based on keywords
-    let smartReply = "Hello! I am Counselor Chioma. What course, university, or polytechnic are you aiming for? Tell me your dream course or score and I will tell you your exact chances!";
+  } catch {
+    // Intelligent contextual fallback when network/API is unavailable
+    let smartReply = `Hello scholar! I hear you regarding "${message}". Tell me more about what you need assistance with — whether it is choosing your 4 JAMB subjects, calculating your cut-off aggregate, study schedules, or institution advice!`;
 
-    if (msg === 'hi' || msg === 'hello' || msg.startsWith('hi ') || msg.startsWith('hello ') || msg === 'hey' || msg.includes('how far') || msg.includes('good morning') || msg.includes('good afternoon') || msg.includes('good evening')) {
-      smartReply = "Hello there! I am Counselor Chioma, your Admissions Advisor. How is your exam preparation going? Tell me the course or university you have in mind, and I'll give you the exact subject combinations, safe cut-off score, and admission tricks!";
+    const recentHistory = (history || []).map((h: any) => h.content || '').join(' ').toLowerCase();
+
+    // 16 years old / monetag / paypal / student finances
+    if (msg.includes('16') && (msg.includes('paypal') || msg.includes('bank') || msg.includes('earn') || msg.includes('monetag') || msg.includes('dollar') || msg.includes('money'))) {
+      smartReply = "Here is practical advice regarding online earnings (Monetag/PayPal) at age 16 in Nigeria:\n\n• **Age Restriction:** PayPal and Nigerian commercial banks require users to be at least 18 years old to own an independent account with BVN and NIN verification.\n• **How to Withdraw Legally:** You can have a trusted parent, older sibling, or legal guardian connect their verified PayPal or local bank account to receive the funds for you.\n• **Important Reminder:** Keep your priority on your upcoming examinations (JAMB UTME / WAEC). Building digital skills is great, but getting your university admission secured gives you the best long-term foundation!";
+    } else if (msg.includes('age') || msg.includes('16 year') || msg.includes('16yr') || msg.includes('underage')) {
+      smartReply = "Regarding Age Requirements for Nigerian Universities:\n• Official NUC / JAMB benchmark expects candidates to be at least 16 years of age by admission year.\n• Top federal institutions (UNILAG, UI, UNIBEN) strictly enforce the 16-year age minimum at screening.\n• If you are 16 or turning 16, you are qualified to write JAMB and gain admission!";
+    } else if (msg === 'why' || msg === 'why?' || msg === 'how' || msg === 'how?' || msg.startsWith('why ')) {
+      if (recentHistory.includes('nurs') || recentHistory.includes('med')) {
+        smartReply = "Here is why Medicine & Nursing have such high cut-offs:\n• High Demand: Over 10,000 applicants compete for just 100-150 NUC/MDCN accredited slots per federal university.\n• High Merit Filter: UNILAG, UI, and UNIBEN receive candidates scoring 280-330+.\n• Solution: If your score is 220-250, choose State Universities (e.g. LASU, OOU) or related courses like Medical Lab Science, Physiology, or Anatomy.";
+      } else if (recentHistory.includes('law')) {
+        smartReply = "Here is why: The Council of Legal Education strictly regulates intake. Without Literature in English in both JAMB and WAEC, candidates are automatically disqualified, and federal merit aggregates regularly exceed 70%.";
+      } else if (recentHistory.includes('comp') || recentHistory.includes('software')) {
+        smartReply = "Here is why: Computer Science is currently Nigeria's most subscribed science course. Federal schools enforce strict Mathematics & Physics prerequisites, leaving little room for lower UTME scores.";
+      } else {
+        smartReply = "Here is why: Admission into Nigerian higher institutions is strictly determined by NUC capacity quotas, Merit (45%), Catchment Area (35%), and Educationally Less Developed States (20%). Tell me your specific score, course, and state to give you an exact calculation!";
+      }
+    } else if (msg === 'hi' || msg === 'hello' || msg.startsWith('hi ') || msg.startsWith('hello ') || msg === 'hey' || msg.includes('how far') || msg.includes('good morning') || msg.includes('good afternoon') || msg.includes('good evening')) {
+      smartReply = "Hello there scholar! I am Counselor Chioma, your Admissions Advisor. How is your exam preparation going? Tell me the course or university you have in mind, and I'll give you the exact subject combinations, safe cut-off score, and admission tricks!";
     } else if (msg.includes('nurs') || msg.includes('med')) {
       smartReply = "For Nursing & Medicine in Nigeria:\n• 4 JAMB Subjects: English, Biology, Chemistry, Physics.\n• WAEC: 5 credits in ONE sitting for UNILAG, UI, UNIBEN, OAU.\n• Safe UTME score: 250+ for Nursing, 275+ for Medicine.\n• Alternative: Medical Lab Science, Physiology, or Anatomy if your score is 210-245.";
     } else if (msg.includes('law')) {
@@ -121,7 +150,7 @@ Keep your explanation clear, practical, direct, and encouraging. Never be verbos
     );
 
     const apiPromise = ai.models.generateContent({
-      model: 'gemini-3.1-flash-lite',
+      model: 'gemini-3.8-flash',
       contents: [{ role: 'user', parts: [{ text: userText }] }],
       config: {
         systemInstruction,

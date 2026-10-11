@@ -15,8 +15,17 @@ import {
   Award,
   Layers,
   ArrowRight,
+  Wifi,
+  WifiOff,
+  AlertTriangle,
 } from 'lucide-react';
 import { openWhatsAppShare, buildCounselorAdviceShareMessage, copyTextToClipboard } from '../utils/shareUtils';
+import {
+  checkCounselorRateLimit,
+  recordCounselorQuestion,
+  checkMessageRestrictions,
+  generateSmartCounselorReply,
+} from '../utils/counselorEngine';
 
 interface AiCounselorProps {
   monetagLink: string;
@@ -115,6 +124,25 @@ export const AiCounselor: React.FC<AiCounselorProps> = ({
   const [activeCategoryIdx, setActiveCategoryIdx] = useState(0);
   const [speakingMsgId, setSpeakingMsgId] = useState<string | null>(null);
 
+  const [isOnline, setIsOnline] = useState<boolean>(() => {
+    return typeof navigator !== 'undefined' ? navigator.onLine : true;
+  });
+  const [rateLimitWarning, setRateLimitWarning] = useState<string | null>(null);
+
+  // Monitor network connectivity
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Sync to local storage
@@ -180,6 +208,19 @@ export const AiCounselor: React.FC<AiCounselorProps> = ({
     const queryText = (textToSend || inputMessage).trim();
     if (!queryText || isLoading) return;
 
+    // 1. Check Rate Limits (Anti-Spam Restriction)
+    const rateCheck = checkCounselorRateLimit();
+    if (!rateCheck.allowed) {
+      setRateLimitWarning(
+        `⏳ You have asked many questions! Please wait ${rateCheck.resetMinutes} minute(s) before asking again to avoid server overload.`
+      );
+      setTimeout(() => setRateLimitWarning(null), 6000);
+      return;
+    }
+
+    // 2. Check Content Restrictions (Cheating / Malpractice / Abuse)
+    const restriction = checkMessageRestrictions(queryText);
+
     const userMsg: ChatMessage = {
       id: Date.now().toString(),
       sender: 'user',
@@ -189,7 +230,49 @@ export const AiCounselor: React.FC<AiCounselorProps> = ({
 
     setMessages((prev) => [...prev, userMsg]);
     setInputMessage('');
+
+    if (restriction.restricted && restriction.response) {
+      // Immediate restriction advisory
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          sender: 'counselor',
+          text: restriction.response!,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        },
+      ]);
+      return;
+    }
+
+    recordCounselorQuestion();
     setIsLoading(true);
+
+    const historyItems = messages.slice(-8).map((m) => ({
+      role: m.sender === 'user' ? ('user' as const) : ('model' as const),
+      content: m.text,
+    }));
+
+    // If device is completely offline, notify user and use intelligent offline counselor engine
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      setTimeout(() => {
+        const offlineReply =
+          "📡 **Offline Mode Active:** You are currently offline (no internet connection). Don't worry! Here is Counselor Chioma's verified offline guidance:\n\n" +
+          generateSmartCounselorReply(queryText, historyItems);
+
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: (Date.now() + 1).toString(),
+            sender: 'counselor',
+            text: offlineReply,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          },
+        ]);
+        setIsLoading(false);
+      }, 500);
+      return;
+    }
 
     try {
       const response = await fetch('/api/counselor', {
@@ -197,18 +280,18 @@ export const AiCounselor: React.FC<AiCounselorProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: queryText,
-          history: messages.slice(-6).map((m) => ({
-            role: m.sender === 'user' ? 'user' : 'model',
-            content: m.text,
-          })),
+          history: historyItems,
         }),
       });
+
+      if (!response.ok) {
+        throw new Error(`Server returned ${response.status}`);
+      }
 
       const data = await response.json();
       const replyText =
         data.reply ||
-        data.fallback ||
-        "I'm experiencing a brief network hiccup with the JAMB brochure engine. Please ask your question again!";
+        generateSmartCounselorReply(queryText, historyItems);
 
       setMessages((prev) => [
         ...prev,
@@ -220,69 +303,17 @@ export const AiCounselor: React.FC<AiCounselorProps> = ({
         },
       ]);
     } catch {
-      // Local Intelligent Knowledge Base Fallback
-      const lower = queryText.toLowerCase();
-      let smartFallback =
-        "Hello! I am Counselor Chioma. What course, university, or polytechnic are you aiming for? Tell me your dream course or score and I will analyze your exact chances, official 4 JAMB subjects, and cut-off benchmarks!";
-
-      if (
-        lower === 'hi' ||
-        lower === 'hello' ||
-        lower.startsWith('hi ') ||
-        lower.startsWith('hello ') ||
-        lower === 'hey' ||
-        lower.includes('how far') ||
-        lower.includes('good morning') ||
-        lower.includes('good afternoon')
-      ) {
-        smartFallback =
-          "Hello there scholar! I am Counselor Chioma, your Admissions Advisor. How is your preparation going? Tell me the course or university you have in mind, and I'll give you the exact 4 JAMB subjects, safe cut-off score, and admission tricks!";
-      } else if (lower.includes('nurs') || lower.includes('med')) {
-        smartFallback =
-          "For Nursing & Medicine in Nigeria:\n" +
-          "• Compulsory 4 JAMB Subjects: English, Biology, Chemistry, Physics.\n" +
-          "• O'Level Requirement: 5 credits in ONE sitting for UNILAG, UI, UNIBEN, OAU.\n" +
-          "• Safe UTME Benchmarks: 250+ for Nursing, 275+ for Medicine.\n" +
-          "• High-Yield Alternatives: Medical Laboratory Science, Physiology, Anatomy, or Nursing Science in top State Universities (e.g. LASU, DELSU, OOU) if your score is 215-245.";
-      } else if (lower.includes('law')) {
-        smartFallback =
-          "For Civil / Common Law (LL.B) in Nigeria:\n" +
-          "• Compulsory 4 JAMB Subjects: English Language, Literature in English, Government or History, and any Arts/Social Science subject.\n" +
-          "• Strict Warning: Candidates who sit for JAMB without Literature in English are automatically disqualified from Law across ALL universities in Nigeria.\n" +
-          "• Safe UTME Benchmark: 260+ for Federal Universities (UNILAG, UI, OAU, UNN), 235+ for State Universities.";
-      } else if (lower.includes('comp') || lower.includes('software') || lower.includes('cyber')) {
-        smartFallback =
-          "For Computer Science / Software Engineering / Cybersecurity:\n" +
-          "• Compulsory 4 JAMB Subjects: English Language, Mathematics, Physics, and Chemistry.\n" +
-          "• Top Universities: UNILAG, FUTA, UNN, LASU, and Covenant University.\n" +
-          "• Top Practical Polytechnics: Yaba College of Technology (YABATECH), Federal Poly Ilaro.\n" +
-          "• Minimum Benchmark: 220+ for Federal Universities, 160+ for Polytechnics (ND/HND).";
-      } else if (lower.includes('low') || lower.includes('150') || lower.includes('160') || lower.includes('170') || lower.includes('180') || lower.includes('190')) {
-        smartFallback =
-          "Strategic Action Plan for Scores Between 140 and 199:\n" +
-          "1. Switch to Accredited Polytechnics: Institutions like YabaTech, Federal Poly Ilaro, and Auchi Poly accept 150-180 and offer direct entry into 200 Level university upon ND graduation.\n" +
-          "2. Target Fast-Growing State & Private Universities: Many State Universities (e.g., TASUED, MAPOLY, BSU, FUOYE for certain programs) have cut-offs around 160-180.\n" +
-          "3. Consider Course Change: Shift from saturated courses (e.g. Medicine) to related courses like Biochemistry, Science Lab Tech, or Agricultural Economics where competition is lower.";
-      } else if (lower.includes('sitting') || lower.includes('two') || lower.includes('combine')) {
-        smartFallback =
-          "Official O'Level Two-Sittings Rules:\n" +
-          "• Top Federal Universities (UNILAG, UI, UNIBEN, OAU) insist on ONE sitting for competitive courses (Medicine, Pharmacy, Nursing, Law).\n" +
-          "• Most State Universities (LASU, OOU, DELSU, EKSU) and ALL Polytechnics accept TWO sittings (WAEC + NECO combined).\n" +
-          "• Always ensure you have at least 5 credit passes including English Language and Mathematics across the two sittings.";
-      } else if (lower.includes('catchment')) {
-        smartFallback =
-          "How Catchment Area Advantage Works in Federal Universities:\n" +
-          "Federal universities reserve 35% of their total admission quota strictly for candidates whose State of Origin falls within their geographical zone.\n" +
-          "• Example: UNILAG gives lower merit cut-offs to indigenes of Lagos, Ogun, Oyo, Osun, Ondo, and Ekiti!\n" +
-          "• Make sure your JAMB State of Origin is verified with your LGA Certificate of Origin.";
-      }
+      // Offline / Network fallback with full contextual understanding
+      const smartReply =
+        "📡 **Offline Notice:** You appear to be offline or server network is unreachable. Here is Counselor Chioma's verified offline guidance:\n\n" +
+        generateSmartCounselorReply(queryText, historyItems);
 
       setMessages((prev) => [
         ...prev,
         {
           id: (Date.now() + 1).toString(),
           sender: 'counselor',
-          text: smartFallback,
+          text: smartReply,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         },
       ]);
@@ -358,10 +389,17 @@ export const AiCounselor: React.FC<AiCounselorProps> = ({
                 <h3 className="text-base sm:text-lg font-black text-white leading-tight">
                   Counselor Chioma
                 </h3>
-                <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-500/30 text-emerald-300 border border-emerald-400/30 px-2 py-0.5 rounded-full hidden sm:inline-flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                  Online • Chief Advisor
-                </span>
+                {isOnline ? (
+                  <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-500/30 text-emerald-300 border border-emerald-400/30 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                    Online • Live Advisor
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-500/30 text-amber-300 border border-amber-400/30 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                    <WifiOff className="w-2.5 h-2.5 text-amber-300" />
+                    Offline • Smart Engine
+                  </span>
+                )}
               </div>
               <p className="text-xs text-emerald-200/90 mt-0.5 font-medium">
                 Verified JAMB 2026/2027 Guidelines • Official NUC Cut-Offs • O&apos;Level Specialist
@@ -461,6 +499,25 @@ export const AiCounselor: React.FC<AiCounselorProps> = ({
           ))}
         </div>
       </div>
+
+      {/* Offline Alert Strip */}
+      {!isOnline && (
+        <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-2 flex items-center justify-between text-xs text-amber-900 font-semibold shrink-0">
+          <div className="flex items-center gap-2">
+            <WifiOff className="w-4 h-4 text-amber-600 shrink-0" />
+            <span>You are currently offline. Chioma's smart offline engine will continue answering your admissions questions!</span>
+          </div>
+          <span className="text-[10px] bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full font-bold">Offline Active</span>
+        </div>
+      )}
+
+      {/* Rate limit warning banner */}
+      {rateLimitWarning && (
+        <div className="bg-rose-50 border-b border-rose-200 px-4 py-2.5 flex items-center gap-2 text-xs text-rose-800 font-bold shrink-0 animate-fade-in">
+          <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+          <span>{rateLimitWarning}</span>
+        </div>
+      )}
 
       {/* ================= MESSAGES CHAT SCROLL ================= */}
       <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 bg-slate-50/50">

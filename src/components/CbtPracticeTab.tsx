@@ -24,6 +24,7 @@ import {
 import {
   CBT_SUBJECTS_LIST,
   CBT_QUESTIONS_BANK,
+  CBT_EXAM_YEARS,
   CbtQuestion,
   getQuestionsForSubject,
   calculateExamResults,
@@ -41,6 +42,9 @@ export const CbtPracticeTab: React.FC<CbtPracticeTabProps> = ({
 }) => {
   // Practice Sub-Mode: 'mock' (Full 4-Subject 2-Hour CBT) or 'drill' (Quick 1-Subject topical practice)
   const [examMode, setExamMode] = useState<'mock' | 'drill'>('mock');
+
+  // Selected Exam Year Filter
+  const [selectedYear, setSelectedYear] = useState<string>('All Years');
 
   // Candidate Registration setup for 4-Subject Mock
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([
@@ -95,7 +99,7 @@ export const CbtPracticeTab: React.FC<CbtPracticeTabProps> = ({
 
   // Current Subject and Questions
   const activeSubjectName = selectedSubjects[currentSubjectIdx] || 'English';
-  const currentSubjectQuestions = getQuestionsForSubject(activeSubjectName);
+  const currentSubjectQuestions = getQuestionsForSubject(activeSubjectName, selectedYear);
   const activeQuestion: CbtQuestion | undefined = currentSubjectQuestions[currentQuestionIdx];
 
   // 120-Minute Countdown Clock for Mock Exam
@@ -187,14 +191,14 @@ export const CbtPracticeTab: React.FC<CbtPracticeTabProps> = ({
     } else if (currentSubjectIdx > 0) {
       setCurrentSubjectIdx((prev) => prev - 1);
       const prevSubj = selectedSubjects[currentSubjectIdx - 1];
-      const prevQuestions = getQuestionsForSubject(prevSubj);
+      const prevQuestions = getQuestionsForSubject(prevSubj, selectedYear);
       setCurrentQuestionIdx(Math.max(0, prevQuestions.length - 1));
     }
   };
 
   // Exam Submission Handler
   const handleFinalSubmit = () => {
-    const results = calculateExamResults(selectedSubjects, answers);
+    const results = calculateExamResults(selectedSubjects, answers, selectedYear);
     setExamResults(results);
     setIsExamSubmitted(true);
     setShowSubmitConfirmModal(false);
@@ -238,7 +242,7 @@ export const CbtPracticeTab: React.FC<CbtPracticeTabProps> = ({
   }, 0);
 
   const totalQuestionsAcrossExam = selectedSubjects.reduce((acc, subj) => {
-    return acc + getQuestionsForSubject(subj).length;
+    return acc + getQuestionsForSubject(subj, selectedYear).length;
   }, 0);
 
   // Timer Color Indicator based on urgency
@@ -397,7 +401,36 @@ export const CbtPracticeTab: React.FC<CbtPracticeTabProps> = ({
                 </div>
               </div>
 
-              {/* Step 2: Exam Rules Overview */}
+              {/* Step 2: Select UTME Exam Year */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                    Step 2: Choose Past Questions Year (Filter Questions by Year):
+                  </label>
+                  <span className="text-xs font-bold font-mono text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                    Active: {selectedYear}
+                  </span>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  {CBT_EXAM_YEARS.map((yr) => (
+                    <button
+                      key={yr}
+                      type="button"
+                      onClick={() => setSelectedYear(yr)}
+                      className={`px-3.5 py-2 rounded-xl text-xs font-bold border transition cursor-pointer flex items-center gap-1.5 ${
+                        selectedYear === yr
+                          ? 'bg-amber-400 text-slate-950 border-amber-500 shadow-xs'
+                          : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      <span>{yr === 'All Years' ? '🌟 All Years (Mixed UTME Questions)' : `🗓️ ${yr} Past Questions`}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Step 3: Exam Rules Overview */}
               <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                 <div className="flex items-start gap-2.5">
                   <Clock className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
@@ -454,7 +487,7 @@ export const CbtPracticeTab: React.FC<CbtPracticeTabProps> = ({
                 <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
                   {selectedSubjects.map((subj, idx) => {
                     const answered = getSubjectAnsweredCount(subj);
-                    const totalQ = getQuestionsForSubject(subj).length;
+                    const totalQ = getQuestionsForSubject(subj, selectedYear).length;
                     const isActive = currentSubjectIdx === idx;
 
                     return (
@@ -480,7 +513,10 @@ export const CbtPracticeTab: React.FC<CbtPracticeTabProps> = ({
                 </div>
 
                 {/* Countdown Clock & Submit Button */}
-                <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+                <div className="flex items-center justify-between sm:justify-end gap-2.5 shrink-0">
+                  <span className="hidden sm:inline-flex text-[10px] font-mono font-bold bg-emerald-900/90 text-amber-300 px-2.5 py-1 rounded-lg border border-emerald-700/60">
+                    {selectedYear}
+                  </span>
                   <div className={`px-3 py-1 rounded-xl text-xs flex items-center gap-1.5 transition-all ${getTimerColorClass()}`}>
                     <Clock className="w-3.5 h-3.5" />
                     <span>{formatTimer(timeRemaining)}</span>
@@ -787,7 +823,7 @@ export const CbtPracticeTab: React.FC<CbtPracticeTabProps> = ({
                     {/* Review Active Question */}
                     {(() => {
                       const revSubj = selectedSubjects[reviewSubjectIdx];
-                      const revQuestions = getQuestionsForSubject(revSubj);
+                      const revQuestions = getQuestionsForSubject(revSubj, selectedYear);
                       const revQ = revQuestions[reviewQuestionIdx];
                       const userPick = answers[revSubj]?.[revQ?.id];
                       const isCorrect = userPick === revQ?.correct;
@@ -927,9 +963,41 @@ export const CbtPracticeTab: React.FC<CbtPracticeTabProps> = ({
             </div>
           </div>
 
+          {/* Year Filter Bar for Drill */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                Select Past Questions Year:
+              </label>
+              <span className="text-[11px] font-mono font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                Active Year: {selectedYear}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+              {CBT_EXAM_YEARS.map((yr) => (
+                <button
+                  key={yr}
+                  onClick={() => {
+                    setSelectedYear(yr);
+                    setDrillQuestionIdx(0);
+                    setDrillSelectedAnswer(null);
+                    setDrillIsAnswerRevealed(false);
+                  }}
+                  className={`px-3 py-1 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
+                    selectedYear === yr
+                      ? 'bg-amber-400 text-slate-950 font-black shadow-xs'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  }`}
+                >
+                  {yr === 'All Years' ? '🌟 All Years' : `🗓️ ${yr} Questions`}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Drill Active Question Card */}
           {(() => {
-            const drillQuestions = getQuestionsForSubject(drillSubject);
+            const drillQuestions = getQuestionsForSubject(drillSubject, selectedYear);
             const q = drillQuestions[drillQuestionIdx];
 
             if (!q) {
@@ -1063,7 +1131,7 @@ export const CbtPracticeTab: React.FC<CbtPracticeTabProps> = ({
             <div className="bg-slate-50 rounded-xl p-3 border border-slate-200 space-y-2 text-xs">
               {selectedSubjects.map((subj) => {
                 const ansCount = getSubjectAnsweredCount(subj);
-                const totalQ = getQuestionsForSubject(subj).length;
+                const totalQ = getQuestionsForSubject(subj, selectedYear).length;
 
                 return (
                   <div key={subj} className="flex items-center justify-between">

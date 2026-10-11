@@ -52,6 +52,174 @@ export interface TheoryItem {
 }
 
 // ==========================================
+// OFFICIAL JAMB PRESCRIBED NOVEL: THE LEKKI HEADMASTER
+// ==========================================
+export const THE_LEKKI_HEADMASTER: NovelData = {
+  id: 'the-lekki-headmaster',
+  title: 'The Lekki Headmaster',
+  author: 'Kabir Alabi Garba',
+  genre: 'Contemporary Educational Fiction & Social Satire',
+  prescribedFor: 'JAMB UTME (Use of English - Compulsory Reading Text 2025/2026/2027)',
+  sessionTag: 'JAMB UTME Prescribed Novel (2025/2026/2027)',
+  synopsis:
+    'The Lekki Headmaster tells the compelling, satirical story of Mr. Sylvester Oludare, a principled and experienced veteran educator who is appointed to head an elite private school in the opulent Lekki peninsula of Lagos State. Thrust into a high-society educational environment where exorbitant tuition fees encourage parental entitlement and lax discipline, Sylvester must navigate boardroom pressures, student smartphone addiction, grade lobbying, and examination compromise while striving to instill authentic moral values and academic excellence in the next generation.',
+  themes: [
+    {
+      title: 'Commercialization of Elite Education',
+      description:
+        'The tension between running a private academy as a profit-maximizing enterprise versus fulfilling its primary duty as a moral and intellectual crucible for young minds.',
+    },
+    {
+      title: 'Moral Integrity vs. Wealth & Entitlement',
+      description:
+        'The persistent battle between wealthy, influential parents demanding special exemptions for their children and a principled headmaster standing firmly for equal justice.',
+    },
+    {
+      title: 'Digital Dilemmas & Teenage Vulnerability',
+      description:
+        'The rampant distraction of smartphones, TikTok viral culture, and cyber escapism that hampers academic concentration and exposes teenagers to moral hazards.',
+    },
+    {
+      title: 'Class Disparity & Urban Realities in Lagos',
+      description:
+        'The stark contrast between the glamorous lifestyles of the Lekki elite and the economic hardships faced by dedicated teachers living across the mainland.',
+    },
+    {
+      title: 'The Dignity and Heroism of Teaching',
+      description:
+        'The quiet sacrifice and resilience of educators like Sylvester and Miss Bisi who resist societal cynicism to shape the conscience of future leaders.',
+    },
+  ],
+  characters: [
+    {
+      name: 'Mr. Sylvester Oludare (The Lekki Headmaster)',
+      role: 'Protagonist / Resolute Headmaster',
+      description:
+        'A seasoned, principled educator whose unbending commitment to discipline and meritocracy clashes with the pampering culture of Lekki high society.',
+      significance: 'Embodies uncompromising moral leadership and the true purpose of academic stewardship.',
+    },
+    {
+      name: 'Chief Adeleke',
+      role: 'Board Chairman & School Proprietor',
+      description:
+        'A wealthy, pragmatic businessman who views the school as a flagship commercial brand and fears alienating wealthy fee-paying parents.',
+      significance: 'Represents the capitalist pressures on contemporary educational institutions in Nigeria.',
+    },
+    {
+      name: 'Master Demilade Adeleke',
+      role: 'Privileged Student / Proprietor’s Son',
+      description:
+        'A bright but undisciplined student accustomed to having his mistakes overlooked until he encounters Sylvester’s uncompromising disciplinary standard.',
+      significance: 'Serves as the narrative vehicle for moral transformation and personal accountability.',
+    },
+    {
+      name: 'Mrs. Funke Oludare',
+      role: 'Sylvester’s Wife & Trusted Confidante',
+      description:
+        'A supportive, perceptive woman who provides spiritual ballast and grounded counsel during Sylvester’s most harrowing trials.',
+      significance: 'Grounds the protagonist in domestic peace and unshakeable family values.',
+    },
+    {
+      name: 'Miss Bisi',
+      role: 'Dedicated Senior English Teacher',
+      description:
+        'A passionate teacher commuting long hours from the Lagos mainland who refuses to lower academic grading standards despite pressure.',
+      significance: 'Reflects the dedication and socio-economic struggles of Nigerian classroom teachers.',
+    },
+    {
+      name: 'Alhaji & Alhaja Danjuma',
+      role: 'Prominent PTA Executives',
+      description:
+        'Influential Lekki parents who attempt to use monetary donations and social status to dictate school rules and influence disciplinary sanctions.',
+      significance: 'Exemplifies the toxic helicopter parenting and social prestige obsession in private schools.',
+    },
+  ],
+  chapters: [
+    {
+      chapter: 1,
+      title: 'The Summons to Lekki',
+      summary:
+        'Mr. Sylvester Oludare receives an unexpected offer to assume the headship of Prestige Academy in Lekki, Lagos. Leaving his modest mainland posting, he is confronted with sprawling mansions, luxury SUVs, and an opulent school compound where students arrive with private chauffeurs.',
+      keyEvents: ['Sylvester accepts the headship offer', 'First tour of Prestige Academy campus in Lekki', 'Initial culture shock regarding student opulence'],
+      keyQuotes: ['"A school without discipline is merely a five-star hotel with blackboards."'],
+      examTips: 'Exam questions often test the name of the protagonist (Mr. Sylvester Oludare), the setting (Lekki, Lagos), and the contrast with his former school.',
+    },
+    {
+      chapter: 2,
+      title: 'The Morning Assembly Declaration',
+      summary:
+        'At his inaugural morning assembly, Mr. Sylvester sets out new non-negotiable guidelines: strict punctual arrival at 7:30 AM, immediate prohibition of unauthorized smartphones in classrooms, and zero tolerance for disrespectful conduct toward teaching staff.',
+      keyEvents: ['Sylvester’s first address to students and staff', 'Confiscation of contraband gadgets during inspection', 'Ripples of surprise and discontent among pampered students'],
+      keyQuotes: ['"Your parents’ bank accounts can buy you designer wristwatches, but they cannot buy you lost time or moral character."'],
+      examTips: 'Remember Sylvester’s policy on electronic devices and punctual resumption times.',
+    },
+    {
+      chapter: 3,
+      title: 'The Viral Smartphone Incident',
+      summary:
+        'A group of senior students, led by Demilade Adeleke, record a provocative TikTok video inside a laboratory during class hours. When the video goes viral and compromises the school’s image, Sylvester confiscates their high-end iPhones and issues formal detention letters.',
+      keyEvents: ['Contraband smartphone recording in the science lab', 'Viral social media backlash', 'Sylvester’s swift disciplinary measures'],
+      keyQuotes: ['"In an age of digital noise, wisdom is the rarest treasure."'],
+      examTips: 'Look out for the location of the infraction (the school science laboratory) and the students involved.',
+    },
+    {
+      chapter: 4,
+      title: 'The PTA Showdown',
+      summary:
+        'Outraged parents, led by Alhaja Danjuma and Chief Adeleke’s associates, storm the Parent-Teacher Association emergency meeting demanding the return of phones and an apology from the Headmaster. Sylvester stands firm, explaining that character building cannot be compromised for luxury.',
+      keyEvents: ['Heated emergency PTA session', 'Alhaja Danjuma’s confrontational speech', 'Sylvester’s articulate defense of academic discipline'],
+      keyQuotes: ['"If we shield our children from consequences today, society will punish them without mercy tomorrow."'],
+      examTips: 'Questions may probe the arguments presented by the parents versus Sylvester’s defense at the PTA meeting.',
+    },
+    {
+      chapter: 5,
+      title: 'Boardroom Ultimatum',
+      summary:
+        'Chief Adeleke summons Sylvester to a private board meeting. Fearing that three influential parents might withdraw their children and tuition fees, Adeleke pressures Sylvester to soften his stance or risk contract termination. Sylvester offers his resignation if principles must be betrayed.',
+      keyEvents: ['Closed-door boardroom meeting', 'Commercial threats versus educational integrity', 'Sylvester places his resignation letter on the table'],
+      keyQuotes: ['"I was hired to educate children, Chief, not to manage a flattering service for fragile egos."'],
+      examTips: 'Key conflict to recall: the confrontation between Chief Adeleke and Sylvester regarding school fees versus discipline.',
+    },
+    {
+      chapter: 6,
+      title: 'The Mock Exam Syndicate',
+      summary:
+        'During the mock SSCE/JAMB preparation exams, Sylvester and Miss Bisi uncover a leaked question paper circulated via a private WhatsApp group. Sylvester traces the breach to an external mercenary tutor colluding with an underpaid junior staff member.',
+      keyEvents: ['Discovery of leaked examination paper', 'Internal investigative committee convened', 'Dismissal of the compromised accomplice and cancellation of tainted papers'],
+      keyQuotes: ['"An unearned grade is the first seed of national corruption."'],
+      examTips: 'Focus on how the examination malpractice leak was detected and who Sylvester partnered with (Miss Bisi).',
+    },
+    {
+      chapter: 7,
+      title: 'Demilade’s Moment of Truth',
+      summary:
+        'Demilade, implicated in the leak syndicate, breaks down after his father refuses to acknowledge his complicity. Sylvester provides firm counseling rather than mere retribution, guiding Demilade to admit his mistakes, retake the papers honestly, and study diligently.',
+      keyEvents: ['Demilade’s emotional confession', 'Sylvester’s compassionate yet firm mentorship', 'Demilade commits to genuine academic effort'],
+      keyQuotes: ['"The first step to true greatness is the courage to admit when you are wrong."'],
+      examTips: 'Note Demilade’s moral turning point and Sylvester’s philosophy of restorative discipline.',
+    },
+    {
+      chapter: 8,
+      title: 'The National Olympiad Triumph',
+      summary:
+        'Prestige Academy enters the National Inter-School Academic Olympiad. Led by Demilade and peers who prepared through rigorous honest study under Miss Bisi and Sylvester, the school claims the national gold trophy without a single shortcut.',
+      keyEvents: ['Preparation for the prestigious Olympiad', 'Merit-based victory against top national schools', 'Vindication of Sylvester’s academic regimen'],
+      keyQuotes: ['"Gold won on merit shines brighter than diamonds bought with deceit."'],
+      examTips: 'Highlight the role of the Academic Olympiad in validating the Headmaster’s methods to the parents and school board.',
+    },
+    {
+      chapter: 9,
+      title: 'A Legacy of Character',
+      summary:
+        'At the end-of-year valedictory ceremony, Chief Adeleke openly commends Sylvester, acknowledging that character and academic rigour are the true hallmarks of excellence. Parents offer standing ovations as the school establishes the "Sylvester Oludare Character Award."',
+      keyEvents: ['Annual Valedictory and Prize-Giving Day', 'Chief Adeleke’s public apology and tribute', 'Institution of the Character & Merit Award'],
+      keyQuotes: ['"A true teacher does not just impart knowledge; he constructs human conscience."'],
+      examTips: 'Questions often conclude with the title of the prize instituted and the moral resolution of the novel.',
+    },
+  ],
+};
+
+// ==========================================
 // OFFICIAL JAMB PRESCRIBED NOVEL: THE LIFE CHANGER
 // ==========================================
 export const THE_LIFE_CHANGER: NovelData = {
@@ -605,6 +773,7 @@ export const THE_LAST_DAYS_AT_FORCADOS: NovelData = {
 // PRESCRIBED NOVELS CATALOG & DYNAMIC MANAGEMENT
 // ==========================================
 export const PRESCRIBED_NOVELS_CATALOG: NovelData[] = [
+  THE_LEKKI_HEADMASTER,
   THE_LIFE_CHANGER,
   SWEET_SIXTEEN,
   IN_DEPENDENCE,
@@ -612,6 +781,136 @@ export const PRESCRIBED_NOVELS_CATALOG: NovelData[] = [
 ];
 
 export const NOVEL_CBT_QUESTIONS_BY_ID: Record<string, QuestionItem[]> = {
+  'the-lekki-headmaster': [
+    {
+      id: 501,
+      question: 'In Kabir Alabi Garba’s "The Lekki Headmaster", what is the full name of the resolute protagonist appointed to lead Prestige Academy?',
+      options: [
+        { key: 'A', text: 'Mr. Sylvester Oludare' },
+        { key: 'B', text: 'Chief Adeleke' },
+        { key: 'C', text: 'Mr. Samuel Johnson' },
+        { key: 'D', text: 'Alhaji Danjuma' },
+      ],
+      correct: 'A',
+      explanation: 'Mr. Sylvester Oludare is the experienced, uncompromising veteran educator who assumes the headship of Prestige Academy in Lekki, Lagos.',
+      trapWarning: 'Chief Adeleke is the proprietor and board chairman; Sylvester Oludare is the Headmaster.',
+      hint: 'First name is Sylvester.',
+      year: 'JAMB 2025/2026 Prescribed Question',
+      topic: 'Protagonist Profile',
+    },
+    {
+      id: 502,
+      question: 'Where is Prestige Academy, the primary setting of "The Lekki Headmaster", located?',
+      options: [
+        { key: 'A', text: 'Ikeja, Lagos Mainland' },
+        { key: 'B', text: 'Lekki Peninsula, Lagos' },
+        { key: 'C', text: 'Victoria Island, Lagos' },
+        { key: 'D', text: 'Garki, Abuja' },
+      ],
+      correct: 'B',
+      explanation: 'The novel is set in the opulent, highbrow Lekki Peninsula of Lagos, symbolizing elite wealth, luxury lifestyles, and societal privilege.',
+      trapWarning: 'Sylvester relocated from the mainland, but the school itself is situated on the Lekki peninsula.',
+      hint: 'The title gives it away: The Lekki Headmaster.',
+      year: 'JAMB 2025/2026 Prescribed Question',
+      topic: 'Setting & Environment',
+    },
+    {
+      id: 503,
+      question: 'What strict policy announced at the inaugural morning assembly sparked immediate resentment among students and elite parents?',
+      options: [
+        { key: 'A', text: 'A compulsory 4-hour evening prep' },
+        { key: 'B', text: 'The immediate ban and confiscation of unauthorized smartphones in classrooms' },
+        { key: 'C', text: 'A ban on bringing cars by teachers' },
+        { key: 'D', text: 'A doubling of school uniform fees' },
+      ],
+      correct: 'B',
+      explanation: 'Mr. Sylvester strictly prohibited unauthorized smartphones and entertainment gadgets during school hours to curb digital distractions and restore academic concentration.',
+      trapWarning: 'Sylvester focused on moral and academic discipline (gadgets and punctuality), not school fee hikes.',
+      hint: 'Relates to digital devices and smartphones.',
+      year: 'JAMB 2025/2026 Prescribed Question',
+      topic: 'Chapter 2 Discipline Policy',
+    },
+    {
+      id: 504,
+      question: 'Who is Master Demilade Adeleke in "The Lekki Headmaster"?',
+      options: [
+        { key: 'A', text: 'The Headmaster’s younger brother' },
+        { key: 'B', text: 'The School Proprietor and Board Chairman’s privileged son' },
+        { key: 'C', text: 'The senior prefect who reported exam malpractice' },
+        { key: 'D', text: 'The external examination supervisor' },
+      ],
+      correct: 'B',
+      explanation: 'Demilade is the pampered son of Chief Adeleke (the Board Chairman), who initially believes his father’s wealth and status exempt him from rules.',
+      trapWarning: 'Demilade is a student and the Chairman’s son, not the Headmaster’s relative.',
+      hint: 'Shares the surname Adeleke with the school board proprietor.',
+      year: 'JAMB 2025/2026 Prescribed Question',
+      topic: 'Character Relationships',
+    },
+    {
+      id: 505,
+      question: 'What central conflict erupts between Mr. Sylvester and Chief Adeleke during the boardroom meeting?',
+      options: [
+        { key: 'A', text: 'Salary increments for mainland transport fares' },
+        { key: 'B', text: 'Commercial profit and parental pampering versus uncompromising academic and moral discipline' },
+        { key: 'C', text: 'Purchasing an electric generator for the hostel' },
+        { key: 'D', text: 'Changing the official school uniform color' },
+      ],
+      correct: 'B',
+      explanation: 'Chief Adeleke fears losing wealthy fee-paying parents and demands compromise, while Sylvester insists on educational integrity, even tendering his resignation.',
+      trapWarning: 'It is a profound philosophical clash between education as a business versus education as moral formation.',
+      hint: 'Principles vs Profits.',
+      year: 'JAMB 2025/2026 Prescribed Question',
+      topic: 'Central Theme & Conflict',
+    },
+    {
+      id: 506,
+      question: 'How did Mr. Sylvester and Miss Bisi resolve the mock examination question leak?',
+      options: [
+        { key: 'A', text: 'They ignored it to protect the school’s reputation' },
+        { key: 'B', text: 'They traced the leak to an external mercenary syndicate, dismissed the compromised accomplice, and reset honest papers' },
+        { key: 'C', text: 'They awarded every student automatic A grades' },
+        { key: 'D', text: 'They expelled the entire senior graduating class' },
+      ],
+      correct: 'B',
+      explanation: 'Rather than sweeping the malpractice under the carpet, Sylvester investigated, caught the syndicate, dismissed the traitorous staff accomplice, and reset the exams.',
+      trapWarning: 'Sylvester never compromises academic standards for public relations.',
+      hint: 'Honesty and thorough investigation.',
+      year: 'JAMB 2025/2026 Prescribed Question',
+      topic: 'Exam Malpractice Subplot',
+    },
+    {
+      id: 507,
+      question: 'What major victory vindicated Mr. Sylvester’s strict academic regimen before the board and parents?',
+      options: [
+        { key: 'A', text: 'Winning the Lagos Inter-School Football Cup' },
+        { key: 'B', text: 'Winning gold at the National Inter-School Academic Olympiad purely on merit' },
+        { key: 'C', text: 'Hosting the most expensive graduation banquet in Lagos' },
+        { key: 'D', text: 'Appearing on an international television documentary' },
+      ],
+      correct: 'B',
+      explanation: 'Students trained diligently under Sylvester and Miss Bisi won the prestigious National Academic Olympiad without cheating, proving that discipline breeds true excellence.',
+      trapWarning: 'It was an academic competition (Olympiad), not a sports tournament.',
+      hint: 'Academic Olympiad gold medal.',
+      year: 'JAMB 2025/2026 Prescribed Question',
+      topic: 'Climax & Resolution',
+    },
+    {
+      id: 508,
+      question: 'What special honour was created at the valedictory ceremony to commemorate the Headmaster’s impact?',
+      options: [
+        { key: 'A', text: 'A statue in the school courtyard' },
+        { key: 'B', text: 'The Sylvester Oludare Character & Merit Award' },
+        { key: 'C', text: 'A luxury Mercedes Benz gift' },
+        { key: 'D', text: 'A lifetime honorary board seat' },
+      ],
+      correct: 'B',
+      explanation: 'Chief Adeleke and the school board established the "Sylvester Oludare Character & Merit Award" to honor students demonstrating integrity and scholarship.',
+      trapWarning: 'The prize was named after Sylvester and emphasizes character and integrity.',
+      hint: 'Character Award.',
+      year: 'JAMB 2025/2026 Prescribed Question',
+      topic: 'Novel Conclusion',
+    },
+  ],
   'sweet-sixteen': [
     {
       id: 201,
@@ -770,7 +1069,7 @@ export function getActiveNovel(): NovelData {
   try {
     // 1. Check custom novel first
     const customJson = localStorage.getItem('jamb_custom_novel_data');
-    const activeId = localStorage.getItem('jamb_active_novel_id') || 'the-life-changer';
+    const activeId = localStorage.getItem('jamb_active_novel_id') || 'the-lekki-headmaster';
     
     if (activeId === 'custom' && customJson) {
       const parsed = JSON.parse(customJson);
@@ -778,9 +1077,9 @@ export function getActiveNovel(): NovelData {
     }
 
     const found = PRESCRIBED_NOVELS_CATALOG.find((n) => n.id === activeId);
-    return found || THE_LIFE_CHANGER;
+    return found || THE_LEKKI_HEADMASTER;
   } catch {
-    return THE_LIFE_CHANGER;
+    return THE_LEKKI_HEADMASTER;
   }
 }
 
@@ -1528,34 +1827,61 @@ export const EXPANDED_THEORY_QUESTIONS: Record<string, TheoryItem[]> = {
     },
     {
       id: 3,
-      title: 'Novel Essay: The Life Changer (25 Marks)',
-      topic: 'Prescribed Text Character Analysis',
-      year: 'JAMB / University Screening',
+      title: 'Novel Essay: The Lekki Headmaster (25 Marks)',
+      topic: 'Prescribed Text Thematic Critique',
+      year: 'JAMB / University Post-UTME',
       totalMarks: '25 Marks',
       question:
-        'Examine Salma’s character arc in Khadija Abubakar Jalli’s "The Life Changer". How did her vanity and arrogance lead to her downfall, and what lessons does her eventual repentance offer to new university entrants?',
+        'In Kabir Alabi Garba’s "The Lekki Headmaster", examine the central conflict between educational commercialization represented by Chief Adeleke and moral discipline championed by Mr. Sylvester Oludare. How did the resolution of this conflict restore integrity to Prestige Academy?',
       markingScheme: [
         {
-          step: 'Introduction: Identification of Salma, her background, and arrival at Lafayette University:',
+          step: 'Introduction: Context of Prestige Academy in Lekki and introduction of protagonist Sylvester Oludare:',
           marks: '5 Marks',
         },
         {
-          step: 'Body Paragraph 1: The registration queue, disdain for rules, and roommate dynamics in Queen Amina Hall:',
+          step: 'Chief Adeleke’s philosophy: Private education as a luxury business and fear of losing wealthy fee-paying parents:',
           marks: '7 Marks',
         },
         {
-          step: 'Body Paragraph 2: The Moral Philosophy exam fraud with Kolawole Abdul and extortion by Kabir:',
+          step: 'Sylvester’s stand: Strict prohibition of smartphones, unravelling the mock leak, and resignation ultimatum:',
           marks: '7 Marks',
         },
         {
-          step: 'Conclusion & Lessons: Expulsion verdict, reconciliation with roommates, and moral growth:',
+          step: 'Conclusion: The National Olympiad victory and the institution of the Sylvester Oludare Character Award:',
           marks: '6 Marks',
         },
       ],
       modelAnswer:
-        'Salma represents the archetype of a talented yet proud freshman whose pursuit of campus glamour blinds her to university regulations. Her refusal to queue patiently and her association with Honorable Habib showcase her superficiality. Her fatal blunder occurs when she attempts examination malpractice in Moral Philosophy with Kolawole Abdul, believing her wealth can bribe the disciplinary committee through Kabir. Her subsequent expulsion serves as a cathartic turning point, prompting genuine remorse and humility.',
+        'The novel dramatizes the clash between educational consumerism and moral rectitude. Chief Adeleke views the high tuition fees paid by wealthy Lekki parents as grounds to appease their entitled children, overlooking misconduct like laboratory smartphone misuse. Mr. Sylvester insists that an academic institution is a crucible for character rather than a five-star hotel. When threatened with termination, Sylvester tenders his resignation rather than compromise. The vindication comes when Demilade Adeleke and his peers, disciplined through honest scholarship, win the National Academic Olympiad gold medal. Chief Adeleke publicly concedes error, honoring Sylvester with the Character & Merit Award.',
       examinerAdvice:
-        'Support every assertion with specific textual evidence (mention Queen Amina Hall, Kolawole Abdul, Kabir, and Lafayette University).',
+        'Explicitly mention key scenes: the laboratory smartphone incident, the PTA emergency clash, the boardroom ultimatum, and the National Olympiad triumph.',
+    },
+    {
+      id: 4,
+      title: 'Comprehension & Vocabulary in Context (20 Marks)',
+      topic: 'Reading Comprehension',
+      year: 'WAEC / JAMB',
+      totalMarks: '20 Marks',
+      question:
+        'Explain the contextual meaning of these highlighted expressions in academic prose:\n(a) "An unearned certificate is an intellectual counterfeit."\n(b) "His academic trajectory was stymied by peer indulgence."\n(c) What grammatical name and function is given to: "Although the examination was notoriously arduous"?',
+      markingScheme: [
+        {
+          step: 'Part (a): Explanation of counterfeit (fraudulent, deceptive, devoid of authentic competence)',
+          marks: '6 Marks',
+        },
+        {
+          step: 'Part (b): Explanation of stymied (hindered, derailed, obstructed, or delayed)',
+          marks: '6 Marks',
+        },
+        {
+          step: 'Part (c): Grammatical name: Adverbial clause of concession. Function: Modifies the main verb in the principal clause.',
+          marks: '8 Marks',
+        },
+      ],
+      modelAnswer:
+        '(a) It means a diploma obtained through fraud lacks genuine competence and is worthless in real-world application.\n(b) His educational progress was severely hindered or disrupted by following reckless peers.\n(c) Grammatical Name: Adverbial clause of concession. Grammatical Function: Modifies the verb in the main clause.',
+      examinerAdvice:
+        'In grammatical function questions, ALWAYS state BOTH the name of the clause and the exact verb it modifies.',
     },
   ],
   Mathematics: [
@@ -1629,6 +1955,64 @@ export const EXPANDED_THEORY_QUESTIONS: Record<string, TheoryItem[]> = {
       examinerAdvice:
         'Remember the rule: Second derivative NEGATIVE means MAXIMUM; POSITIVE means MINIMUM.',
     },
+    {
+      id: 3,
+      title: 'Circle Geometry: Alternate Segment & Cyclic Quadrilateral (12 Marks)',
+      topic: 'Geometric Proofs & Angles',
+      year: 'WAEC 2024',
+      totalMarks: '12 Marks',
+      question:
+        'In a circle with center O, chords AB and CD intersect at right angles inside the circle at point E. If chord AB = 16 cm and EB = 6 cm, and chord CD has segment EC = 4 cm:\n(a) State the Intersecting Chords Theorem.\n(b) Calculate the length of segment ED.\n(c) Find the total length of chord CD.',
+      markingScheme: [
+        {
+          step: 'Part (a): State theorem: AE × EB = CE × ED for intersecting chords',
+          marks: '2 Marks',
+        },
+        {
+          step: 'Find AE: AB = 16 cm, EB = 6 cm => AE = 16 - 6 = 10 cm',
+          marks: '2 Marks',
+        },
+        {
+          step: 'Part (b): Substitute into theorem: 10 × 6 = 4 × ED => 60 = 4(ED) => ED = 15 cm',
+          marks: '5 Marks',
+        },
+        {
+          step: 'Part (c): Total length of CD = CE + ED = 4 + 15 = 19 cm',
+          marks: '3 Marks',
+        },
+      ],
+      modelAnswer:
+        '(a) The Intersecting Chords Theorem states that when two chords intersect inside a circle, the product of the segments of one chord equals the product of the segments of the other chord: AE · EB = CE · ED.\n(b) ED = 15 cm\n(c) Total length of chord CD = 19 cm',
+      examinerAdvice:
+        'Show the segment subtraction step (AE = AB - EB) clearly before applying the chord product formula.',
+    },
+    {
+      id: 4,
+      title: 'Statistics: Grouped Mean & Standard Deviation (15 Marks)',
+      topic: 'Measures of Dispersion',
+      year: 'WAEC Standard',
+      totalMarks: '15 Marks',
+      question:
+        'A distribution of marks scored by 50 UTME mock candidates has Σf = 50, Σfx = 2,500, and Σfx² = 130,000.\n(a) Calculate the mean mark (x̄).\n(b) Calculate the variance (σ²).\n(c) Calculate the standard deviation (σ) to 2 decimal places.',
+      markingScheme: [
+        {
+          step: 'Part (a): Mean formula x̄ = Σfx / Σf = 2,500 / 50 = 50',
+          marks: '3 Marks',
+        },
+        {
+          step: 'Part (b): Variance formula σ² = (Σfx² / Σf) - (x̄)² = (130,000 / 50) - (50)² = 2,600 - 2,500 = 100',
+          marks: '7 Marks',
+        },
+        {
+          step: 'Part (c): Standard Deviation σ = √Variance = √100 = 10.00 marks',
+          marks: '5 Marks',
+        },
+      ],
+      modelAnswer:
+        '(a) Mean mark x̄ = 50 marks\n(b) Variance σ² = 100\n(c) Standard Deviation σ = 10.00 marks',
+      examinerAdvice:
+        'Do not confuse variance with standard deviation! Standard deviation is always the square root of the variance.',
+    },
   ],
   Biology: [
     {
@@ -1661,6 +2045,68 @@ export const EXPANDED_THEORY_QUESTIONS: Record<string, TheoryItem[]> = {
         '1. When a blood vessel is damaged, exposed platelets disintegrate and release the enzyme thromboplastin.\n2. In the presence of ionic calcium (Ca²⁺) and Vitamin K, thromboplastin converts inactive plasma prothrombin into active thrombin.\n3. Active thrombin converts soluble blood protein fibrinogen into insoluble, thread-like fibrin polymers.\n4. The fibrin meshwork traps erythrocytes and leukocytes, creating a stable clot that arrests hemorrhage.',
       examinerAdvice:
         'Underline key biochemical terms (thromboplastin, prothrombin, thrombin, fibrinogen, fibrin). Examiners scan for these exact keywords.',
+    },
+    {
+      id: 2,
+      title: 'Plant Physiology: Photosynthesis Light & Dark Reactions (12 Marks)',
+      topic: 'Autotrophic Nutrition',
+      year: 'WAEC / NECO',
+      totalMarks: '12 Marks',
+      question:
+        'Describe the two principal stages of photosynthesis in green plants: the Light-dependent stage and the Light-independent stage (Calvin cycle). State where each stage occurs within the chloroplast.',
+      markingScheme: [
+        {
+          step: 'Light stage site (Grana / Thylakoid membranes) and photolysis of water equation: 2H₂O → 4H⁺ + 4e⁻ + O₂',
+          marks: '4 Marks',
+        },
+        {
+          step: 'ATP and NADPH production during photophosphorylation',
+          marks: '2 Marks',
+        },
+        {
+          step: 'Dark stage site (Stroma of chloroplast) and carbon fixation: CO₂ reduced to carbohydrate (glucose)',
+          marks: '4 Marks',
+        },
+        {
+          step: 'Utilization of ATP and NADPH generated in light phase to power carbon reduction',
+          marks: '2 Marks',
+        },
+      ],
+      modelAnswer:
+        '1. Light-Dependent Stage: Takes place in the thylakoid membranes (grana). Chlorophyll traps solar energy to split water molecules (photolysis) into hydrogen ions, electrons, and oxygen gas (byproduct), synthesizing ATP and NADPH.\n2. Light-Independent Stage (Calvin Cycle): Takes place in the stroma. Carbon dioxide is fixed and chemically reduced using ATP and NADPH from the light stage to synthesize glucose and starch.',
+      examinerAdvice:
+        'State the precise locations: Grana for Light stage, Stroma for Dark stage.',
+    },
+    {
+      id: 3,
+      title: 'Genetics: Sickle Cell Trait Heredity & Punnett Square (15 Marks)',
+      topic: 'Mendelian Genetics & Inheritance',
+      year: 'WAEC 2024',
+      totalMarks: '15 Marks',
+      question:
+        'Two parents, both heterozygous carriers of the sickle cell trait (HbA HbS), plan to marry.\n(a) Using a Punnett square, show the probable genotypes and phenotypes of their offspring.\n(b) State the percentage probability of producing an offspring with sickle cell anaemia (HbS HbS).\n(c) Give two reasons why pre-marital genotype counseling is essential in West Africa.',
+      markingScheme: [
+        {
+          step: 'Part (a): Correct genetic cross diagram / Punnett square with gametes HbA and HbS: Progeny = 1 HbA HbA, 2 HbA HbS, 1 HbS HbS',
+          marks: '6 Marks',
+        },
+        {
+          step: 'Part (b): Phenotypic ratio: 25% Normal (AA), 50% Carrier (AS), 25% Sickle Cell Anemia (SS)',
+          marks: '3 Marks',
+        },
+        {
+          step: 'Part (c): Reason 1: Preventing birth of children suffering chronic vaso-occlusive crises and organ complications',
+          marks: '3 Marks',
+        },
+        {
+          step: 'Reason 2: Alleviating catastrophic financial, medical, and emotional strain on families',
+          marks: '3 Marks',
+        },
+      ],
+      modelAnswer:
+        '(a) Punnett Square:\nGametes: HbA, HbS × HbA, HbS\nOffspring Genotypes: 1 HbA HbA (25%), 2 HbA HbS (50%), 1 HbS HbS (25%)\n(b) Probability of child with Sickle Cell Anaemia (SS) = 25% (1 in 4)\n(c) Importance of genotype counseling:\n1. Reduces the incidence of sickle cell disease crises, strokes, and premature infant mortality.\n2. Helps intending couples make informed reproductive choices to avoid severe psychological and medical burdens.',
+      examinerAdvice:
+        'Always include genotype symbols clearly with superscripts: HbA and HbS.',
     },
   ],
   Chemistry: [
@@ -1699,6 +2145,64 @@ export const EXPANDED_THEORY_QUESTIONS: Record<string, TheoryItem[]> = {
       examinerAdvice:
         'Students frequently forget to convert minutes to seconds! Always convert time to seconds before calculating Q = It.',
     },
+    {
+      id: 2,
+      title: 'Acid-Base Titration & Volumetric Analysis (15 Marks)',
+      topic: 'Quantitative Chemical Analysis',
+      year: 'WAEC 2024',
+      totalMarks: '15 Marks',
+      question:
+        'A student titrates 25.0 cm³ of a standard solution of 0.100 mol/dm³ Sodium Carbonate (Na₂CO₃) against Hydrochloric acid (HCl) of unknown concentration. The average titre volume of HCl used is 20.0 cm³.\nEquation: Na₂CO₃ + 2HCl → 2NaCl + H₂O + CO₂\n(a) Calculate the concentration of the acid in mol/dm³.\n(b) Calculate the concentration of the acid in g/dm³ [H = 1, Cl = 35.5].\n(c) State the most suitable indicator for this titration and explain your choice.',
+      markingScheme: [
+        {
+          step: 'Part (a): Titration formula (C_A × V_A) / (C_B × V_B) = n_A / n_B => (C_A × 20) / (0.100 × 25) = 2 / 1',
+          marks: '5 Marks',
+        },
+        {
+          step: 'Evaluation: C_A = (2 × 0.100 × 25) / 20 = 5.0 / 20 = 0.250 mol/dm³',
+          marks: '3 Marks',
+        },
+        {
+          step: 'Part (b): Molar mass of HCl = 1 + 35.5 = 36.5 g/mol. Mass concentration = C_A × Molar Mass = 0.250 × 36.5 = 9.125 g/dm³',
+          marks: '4 Marks',
+        },
+        {
+          step: 'Part (c): Methyl orange indicator. Reason: Strong acid (HCl) vs weak base (Na₂CO₃) has acidic equivalence point (pH 3.1 - 4.4)',
+          marks: '3 Marks',
+        },
+      ],
+      modelAnswer:
+        '(a) Concentration of HCl = 0.250 mol/dm³\n(b) Concentration in g/dm³ = 9.13 g/dm³\n(c) Methyl orange. Reason: Titration between a strong acid and a weak base reaches equivalence at an acidic pH range, which matches methyl orange’s color change interval.',
+      examinerAdvice:
+        'Phenolphthalein is WRONG for strong acid-weak base titrations! Methyl orange is mandatory.',
+    },
+    {
+      id: 3,
+      title: 'Organic Reaction Mechanism: Ethene Addition & Polymerization (12 Marks)',
+      topic: 'Hydrocarbons (Alkenes)',
+      year: 'WAEC Standard',
+      totalMarks: '12 Marks',
+      question:
+        'With the aid of balanced chemical equations, describe:\n(a) The addition reaction of bromine water with ethene (CH₂=CH₂).\n(b) The addition polymerisation of ethene to form poly(ethene).\n(c) State one major environmental disadvantage of non-biodegradable plastics in Nigeria.',
+      markingScheme: [
+        {
+          step: 'Part (a): Equation CH₂=CH₂ + Br₂ → CH₂Br-CH₂Br (1,2-dibromoethane) with decolourization observation',
+          marks: '4 Marks',
+        },
+        {
+          step: 'Part (b): Polymerisation equation: n(CH₂=CH₂) → [-CH₂-CH₂-]ₙ under high temperature and pressure',
+          marks: '4 Marks',
+        },
+        {
+          step: 'Part (c): Environmental impact: Non-biodegradable nature clogs urban drainage channels (causing flooding) and releases toxic dioxins when incinerated',
+          marks: '4 Marks',
+        },
+      ],
+      modelAnswer:
+        '(a) CH₂=CH₂ + Br₂ → CH₂Br-CH₂Br. Reddish-brown bromine water turns completely colorless.\n(b) n(CH₂=CH₂) → [-CH₂-CH₂-]ₙ (Polyethylene).\n(c) Polyethene resists bacterial decomposition, causing blocked drainage channels, flash floods in urban cities like Lagos, and microplastic soil contamination.',
+      examinerAdvice:
+        'Include the change in appearance: reddish-brown to colourless.',
+    },
   ],
   Physics: [
     {
@@ -1736,6 +2240,60 @@ export const EXPANDED_THEORY_QUESTIONS: Record<string, TheoryItem[]> = {
       examinerAdvice:
         'Units must be clearly stated: Ω for resistance and V for EMF.',
     },
+    {
+      id: 2,
+      title: 'Projectile Motion: Flight Derivation & Range (15 Marks)',
+      topic: 'Mechanics (Kinematics)',
+      year: 'WAEC 2024',
+      totalMarks: '15 Marks',
+      question:
+        'A football is kicked with an initial velocity of 40 m/s at an angle of 30° to the horizontal ground. [Take g = 10 m/s²]:\n(a) Calculate the time of flight (T).\n(b) Calculate the maximum vertical height (H) attained.\n(c) Find the horizontal range (R).',
+      markingScheme: [
+        {
+          step: 'Part (a): Formula T = (2u sin θ) / g = (2 × 40 × sin 30°) / 10 = (80 × 0.5) / 10 = 4.0 seconds',
+          marks: '5 Marks',
+        },
+        {
+          step: 'Part (b): Formula H = (u² sin² θ) / 2g = (40² × (0.5)²) / (2 × 10) = (1600 × 0.25) / 20 = 400 / 20 = 20.0 meters',
+          marks: '5 Marks',
+        },
+        {
+          step: 'Part (c): Formula R = (u² sin 2θ) / g = (1600 × sin 60°) / 10 = 160 × 0.866 = 138.56 meters',
+          marks: '5 Marks',
+        },
+      ],
+      modelAnswer:
+        '(a) Time of flight T = 4.0 s\n(b) Maximum height H = 20.0 m\n(c) Horizontal range R = 138.56 m',
+      examinerAdvice:
+        'Ensure you evaluate sin 2θ as sin(60°) = 0.866, NOT 2 × sin(30°).',
+    },
+    {
+      id: 3,
+      title: 'Geometrical Optics: Lens Formula & Ray Magnification (12 Marks)',
+      topic: 'Light & Refraction',
+      year: 'WAEC Standard',
+      totalMarks: '12 Marks',
+      question:
+        'An object of height 4.0 cm is placed 15.0 cm in front of a converging (convex) lens of focal length 10.0 cm.\n(a) Using the lens formula 1/f = 1/u + 1/v, calculate the image distance (v).\n(b) Determine the magnification (m) and image height.\n(c) State three characteristics of the image formed.',
+      markingScheme: [
+        {
+          step: 'Part (a): 1/10 = 1/15 + 1/v => 1/v = 1/10 - 1/15 = (3 - 2)/30 = 1/30 => v = +30.0 cm',
+          marks: '5 Marks',
+        },
+        {
+          step: 'Part (b): Magnification m = v / u = 30 / 15 = 2.0. Image height = m × object height = 2 × 4 = 8.0 cm',
+          marks: '4 Marks',
+        },
+        {
+          step: 'Part (c): Characteristics: Real, Inverted, and Magnified (twice original size)',
+          marks: '3 Marks',
+        },
+      ],
+      modelAnswer:
+        '(a) Image distance v = +30.0 cm (formed 30 cm behind the lens)\n(b) Linear Magnification m = 2.0; Image height = 8.0 cm\n(c) Image properties: Real, Inverted, and Magnified.',
+      examinerAdvice:
+        'A positive value of image distance v indicates a REAL image.',
+    },
   ],
   Government: [
     {
@@ -1768,6 +2326,41 @@ export const EXPANDED_THEORY_QUESTIONS: Record<string, TheoryItem[]> = {
         'Features:\n1. Introduced the elective principle allowing democratic voting for the first time.\n2. Stimulated early political consciousness and parties (e.g., NNDP in 1923).\n3. Replaced Lugard’s advisory Nigerian Council with a formal Legislative Council.\nNationalist Grievances:\nNationalists protested because voting was restricted only to men earning a steep property qualification of £100 per annum in Lagos and Calabar, while the Northern Region was completely excluded from legislative representation.',
       examinerAdvice:
         'Mention the specific voting qualification (£100 per annum) to earn full analysis marks.',
+    },
+    {
+      id: 2,
+      title: 'Federalism in Nigeria: Structure & Catchment Quota (15 Marks)',
+      topic: 'Federalism & Inter-Governmental Relations',
+      year: 'WAEC 2024',
+      totalMarks: '15 Marks',
+      question:
+        'Explain four fundamental reasons why a Federal System of Government was adopted in Nigeria rather than a Unitary System. How does the Federal Character principle address ethnic diversity?',
+      markingScheme: [
+        {
+          step: 'Reason 1: Vast ethnic, linguistic, and cultural diversity (over 250 ethnic groups)',
+          marks: '3 Marks',
+        },
+        {
+          step: 'Reason 2: Enormous geographical landmass and population distribution',
+          marks: '3 Marks',
+        },
+        {
+          step: 'Reason 3: Historical administrative legacy of separate colonial regional protectorates',
+          marks: '3 Marks',
+        },
+        {
+          step: 'Reason 4: Fear of minority domination by majority ethnic groups',
+          marks: '3 Marks',
+        },
+        {
+          step: 'Federal Character Principle: Enshrined in Section 14(3) of the 1999 Constitution to ensure equitable distribution of public offices and university quotas',
+          marks: '3 Marks',
+        },
+      ],
+      modelAnswer:
+        'Nigeria adopted federalism due to:\n1. Multi-ethnic and cultural pluralism: Over 250 diverse linguistic groups required autonomy to preserve local traditions.\n2. Geographical size: A unitary government in Lagos or Abuja could not effectively administer far-flung rural territories.\n3. Minority protection: Minority communities feared domination by the Hausa-Fulani, Yoruba, and Igbo majorities.\n4. Economic and regional disparities: Component regions needed legislative freedom to manage regional resources.\nThe Federal Character Principle mandates that appointments in government agencies and tertiary admissions reflect all states, promoting national unity.',
+      examinerAdvice:
+        'Cite Section 14(3) of the 1999 Constitution when explaining Federal Character.',
     },
   ],
   Economics: [
@@ -1802,6 +2395,33 @@ export const EXPANDED_THEORY_QUESTIONS: Record<string, TheoryItem[]> = {
       examinerAdvice:
         'Always contrast current year prices vs constant base year prices.',
     },
+    {
+      id: 2,
+      title: 'Central Banking & Monetary Policy Instruments (15 Marks)',
+      topic: 'Money & Banking',
+      year: 'WAEC 2024',
+      totalMarks: '15 Marks',
+      question:
+        'Explain how the Central Bank of Nigeria (CBN) uses the following monetary policy instruments to curb high inflation:\n(a) Monetary Policy Rate (MPR)\n(b) Cash Reserve Ratio (CRR)\n(c) Open Market Operations (OMO)',
+      markingScheme: [
+        {
+          step: 'Part (a): MPR: Raising baseline interest rate increases cost of borrowing for commercial banks, discouraging credit expansion',
+          marks: '5 Marks',
+        },
+        {
+          step: 'Part (b): CRR: Increasing mandatory reserve deposits immobilizes excess commercial bank liquidity',
+          marks: '5 Marks',
+        },
+        {
+          step: 'Part (c): OMO: Selling treasury bills to the public siphons cash out of the banking system into CBN vaults',
+          marks: '5 Marks',
+        },
+      ],
+      modelAnswer:
+        '(a) Monetary Policy Rate (MPR): The CBN hikes the MPR, forcing commercial banks to raise lending rates. High interest rates discourage consumer loans and corporate borrowing, dampening excessive aggregate demand.\n(b) Cash Reserve Ratio (CRR): The CBN mandates banks to freeze a higher percentage of customer deposits. This reduces banks’ loanable funds and contracts credit creation.\n(c) Open Market Operations (OMO): The CBN sells government securities and treasury bills to commercial banks and institutional investors, draining excess liquidity from circulation.',
+      examinerAdvice:
+        'Specify whether the central bank RAISES or LOWERS each instrument during inflationary periods.',
+    },
   ],
   Literature: [
     {
@@ -1830,6 +2450,97 @@ export const EXPANDED_THEORY_QUESTIONS: Record<string, TheoryItem[]> = {
         'Dramatic irony occurs when the audience possesses vital knowledge about a situation that the characters remain unaware of, creating suspense and emotional tension.\nExample: In Ola Rotimi’s "The Gods Are Not To Blame", King Odewale curses the murderer of King Adetusa, swearing to avenge his death, oblivious to the fact that he himself is the culprit he seeks.',
       examinerAdvice:
         'Clearly identify the difference between verbal irony, situational irony, and dramatic irony.',
+    },
+    {
+      id: 2,
+      title: 'Poetic Analysis: Piano and Drums by Gabriel Okara (15 Marks)',
+      topic: 'African Poetry Themes',
+      year: 'WAEC / JAMB',
+      totalMarks: '15 Marks',
+      question:
+        'In Gabriel Okara’s poem "Piano and Drums", analyze the poet’s internal conflict between traditional African values and modern European civilization.',
+      markingScheme: [
+        {
+          step: 'Symbolism of the Drums (primal African rhythms, ancestral heritage, simplicity, maternal warmth)',
+          marks: '5 Marks',
+        },
+        {
+          step: 'Symbolism of the Piano (complex Western modernity, classical concerto, labyrinth of technology and alienation)',
+          marks: '5 Marks',
+        },
+        {
+          step: 'The concluding dilemma of cultural wandering and unresolved hybrid identity',
+          marks: '5 Marks',
+        },
+      ],
+      modelAnswer:
+        'Gabriel Okara uses two contrasting musical instruments to depict the psychological dilemma of the colonized African intellectual. The jungle drums evoke primal, instinctual African warmth, communality, and ancestral heritage. In contrast, the complex, tear-furrowed notes of the piano represent the sophisticated yet alienating labyrinth of Western education and technology. The poem concludes with the speaker wandering at a crossroads, unable to discard his African roots yet irrevocably molded by Western civilization.',
+      examinerAdvice:
+        'Contrast the auditory imagery of "bleeding flesh" and "leopard’s snarl" in the drums stanza with "coaxing diminuendo" in the piano stanza.',
+    },
+  ],
+  Novel: [
+    {
+      id: 1,
+      title: 'The Lekki Headmaster: Sylvester Oludare vs Chief Adeleke (25 Marks)',
+      topic: 'Prescribed JAMB Reading Text',
+      year: 'JAMB UTME 2025/2026',
+      totalMarks: '25 Marks',
+      question:
+        'How does the author Kabir Alabi Garba use Prestige Academy in Lekki to satirize the socio-economic disparities and educational commercialization in modern Lagos State? Discuss with reference to Mr. Sylvester Oludare and Demilade Adeleke.',
+      markingScheme: [
+        {
+          step: 'Setting analysis: Lekki peninsula as an enclave of luxury, private chauffeurs, and entitled parenting',
+          marks: '6 Marks',
+        },
+        {
+          step: 'Mr. Sylvester’s reforms: Confiscating contraband smartphones and tackling examination leakage syndicates',
+          marks: '7 Marks',
+        },
+        {
+          step: 'Demilade’s redemption: From spoiled proprietor’s son to disciplined Olympiad scholar',
+          marks: '6 Marks',
+        },
+        {
+          step: 'Thematic conclusion: Character and moral uprightness outshining commercial wealth in education',
+          marks: '6 Marks',
+        },
+      ],
+      modelAnswer:
+        'In "The Lekki Headmaster", Kabir Alabi Garba presents Prestige Academy as a microcosm of Nigerian elite culture, where exorbitant school fees breed an illusion that moral standards can be bought. Parents arrive in luxury SUVs to challenge disciplinary rules, protesting when smartphones used for viral TikTok dances in science laboratories are seized. Mr. Sylvester Oludare stands as a bulwark against this decay. When the mock examination paper leaks, Sylvester exposes the commercial syndicate rather than protecting the school’s commercial brand. By guiding Master Demilade Adeleke through genuine repentance and rigorous academic preparation to win the National Olympiad, Sylvester proves that true education builds moral character rather than pampering privilege.',
+      examinerAdvice:
+        'Ensure you reference specific chapters: Chapter 2 (Assembly declaration), Chapter 3 (Smartphone seizure), and Chapter 8 (National Olympiad victory).',
+    },
+    {
+      id: 2,
+      title: 'The Life Changer: Examination Malpractice & Moral Philosophy (20 Marks)',
+      topic: 'Plot Irony & Moral Lessons',
+      year: 'JAMB Prescribed Classic',
+      totalMarks: '20 Marks',
+      question:
+        'Discuss the irony of Salma’s apprehension during the Moral Philosophy examination in Lafayette University. How did her misplaced trust in Kabir lead to her eventual undoing?',
+      markingScheme: [
+        {
+          step: 'Dramatic irony of cheating in a course titled "Moral Philosophy"',
+          marks: '6 Marks',
+        },
+        {
+          step: 'Role of Kolawole Abdul and invigilation apprehension',
+          marks: '5 Marks',
+        },
+        {
+          step: 'Kabir’s extortion: Pretending to be an Examination Malpractice Committee (EMC) member and gambling the bribe money',
+          marks: '6 Marks',
+        },
+        {
+          step: 'Lessons on moral integrity and the futility of bribery in tertiary institutions',
+          marks: '3 Marks',
+        },
+      ],
+      modelAnswer:
+        'The central irony in "The Life Changer" is that Salma cheats in a university course titled "Moral Philosophy" — a discipline devoted to ethics and honesty. Desperate to pass without studying, she relies on cheat notes passed by Kolawole Abdul. Caught red-handed by the invigilator, she seeks out Kabir, who deceitfully poses as a connected member of the Examination Malpractice Committee (EMC). Kabir swindles Salma out of money provided by Labaran and squanders it at a gambling den. Salma is summarily expelled, learning too late that deceit cannot purchase academic integrity.',
+      examinerAdvice:
+        'Identify Kabir as an extortionist gambler, not a legitimate university official.',
     },
   ],
 };

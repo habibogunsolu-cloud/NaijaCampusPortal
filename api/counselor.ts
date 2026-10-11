@@ -15,8 +15,29 @@ export default async function handler(req: any, res: any) {
     return;
   }
 
-  const getSmartReply = (query: string): string => {
+    const getSmartReply = (query: string, chatHistory: any[] = []): string => {
     const text = (query || '').toLowerCase().trim();
+
+    // Check restrictions (fraud, expo, abuse)
+    if (text.includes('expo') || text.includes('runz') || text.includes('upgrade score') || text.includes('hack') || text.includes('cheat')) {
+      return "⚠️ **Official Policy Notice:** Counselor Chioma does not assist with illegal exam runs, expo, or score upgrades. JAMB CBT scores cannot be altered externally. Focus on official past questions, syllabus mastery, and genuine university cut-off benchmarks!";
+    }
+
+    // Follow-ups like "why", "how", "what if"
+    const recentHistory = (chatHistory || []).map((h: any) => h.content || '').join(' ').toLowerCase();
+    if (text === 'why' || text === 'why?' || text === 'how' || text === 'how?' || text.startsWith('why ')) {
+      if (recentHistory.includes('nurs') || recentHistory.includes('med')) {
+        return "Here is why Medicine & Nursing have such high cut-offs:\n• High Demand: Over 10,000 applicants compete for just 100-150 NUC/MDCN accredited slots per federal university.\n• High Merit Filter: UNILAG, UI, and UNIBEN receive candidates scoring 280-330+.\n• Solution: If your score is 220-250, choose State Universities (e.g. LASU, OOU) or related courses like Medical Lab Science, Physiology, or Anatomy.";
+      }
+      if (recentHistory.includes('law')) {
+        return "Here is why: The Council of Legal Education strictly regulates intake. Without Literature in English in both JAMB and WAEC, candidates are automatically disqualified, and federal merit aggregates regularly exceed 70%.";
+      }
+      if (recentHistory.includes('comp') || recentHistory.includes('software')) {
+        return "Here is why: Computer Science is currently Nigeria's most subscribed science course. Federal schools enforce strict Mathematics & Physics prerequisites, leaving little room for lower UTME scores.";
+      }
+      return "Here is why: Admission into Nigerian higher institutions is strictly determined by NUC capacity quotas, Merit (45%), Catchment Area (35%), and Educationally Less Developed States (20%). Tell me your specific score, course, and state to give you an exact calculation!";
+    }
+
     if (
       text === 'hi' ||
       text === 'hello' ||
@@ -28,7 +49,7 @@ export default async function handler(req: any, res: any) {
       text.includes('good afternoon') ||
       text.includes('good evening')
     ) {
-      return "Hello there! I am Counselor Chioma, your Admissions Advisor. How is your exam preparation going? Tell me the course or university you have in mind, and I'll give you the exact 4 JAMB subjects, safe cut-off score, and admission tricks!";
+      return "Hello there scholar! I am Counselor Chioma, your Admissions Advisor. How is your exam preparation going? Tell me the course or university you have in mind, and I'll give you the exact 4 JAMB subjects, safe cut-off score, and admission tricks!";
     } else if (text.includes('nurs') || text.includes('med')) {
       return "For Nursing & Medicine in Nigeria:\n• 4 JAMB Subjects: English, Biology, Chemistry, Physics.\n• WAEC: 5 credits in ONE sitting for UNILAG, UI, UNIBEN, OAU.\n• Safe UTME score: 250+ for Nursing, 275+ for Medicine.\n• Alternative: Medical Lab Science, Physiology, or Anatomy if your score is 210-245.";
     } else if (text.includes('law')) {
@@ -50,7 +71,7 @@ export default async function handler(req: any, res: any) {
     } else if (text.includes('catchment')) {
       return "Catchment Area Rule:\nFederal universities reserve 35% of their admission quota for candidates from their surrounding catchment states. For example, UNILAG gives lower merit cut-offs to students from Lagos, Ogun, Oyo, Osun, Ondo, and Ekiti!";
     }
-    return "Hello! For top Nigerian universities, what course or institution are you targeting? I can give you the exact 4 JAMB subjects, cut-off marks, and admission strategy right now.";
+    return `Hello scholar! I hear you regarding "${query}". What course, score, or higher institution are you targeting? Tell me and I will give you the exact subject combinations, safe cut-offs, and admission tricks!`;
   };
 
   try {
@@ -65,19 +86,19 @@ export default async function handler(req: any, res: any) {
     }
 
     const ai = new GoogleGenAI({ apiKey });
-    const systemInstruction = `You are Counselor Chioma, an elite, lightning-fast Nigerian university & JAMB admissions advisor.
-Answer directly, warmly, and concisely in 2-4 sentences or quick bullet points.
-Guidelines:
-- Health Sciences (Medicine, Nursing, Pharmacy): 4 JAMB subjects = English, Biology, Chemistry, Physics.
-- Law: Literature in English is strictly compulsory.
-- Engineering/Computer Science: Mathematics & Physics are mandatory.
-- State Universities (LASU, DELSU, OOU) and Polytechnics (YabaTech, Ilaro) are great alternatives for scores 160-220.
-- Mention Catchment Area advantages when relevant.
-- If the user greets (e.g., 'hi', 'hello', 'how far'), greet them warmly as Counselor Chioma and ask what course or university they are preparing for.
-Keep responses concise, super helpful, and lightning fast.`;
+    const systemInstruction = `You are Counselor Chioma, an elite, warm, highly knowledgeable Nigerian university, polytechnic & JAMB admissions advisor for Nigerian students and candidates for the 2026/2027 academic session.
+CRITICAL INSTRUCTIONS:
+1. ALWAYS respond directly and contextually to ANY message or question the student sends! Never reset to a generic template if they ask a specific question.
+2. If they ask follow-ups ("Why", "How", "What do you mean?", "What if", etc.), answer based on conversation history.
+3. If they ask about money/earnings (like Monetag, PayPal, or bank accounts at age 16 in Nigeria): explain kindly that in Nigeria, international payment platforms like PayPal and independent commercial bank accounts require being 18+ (with BVN/NIN). A 16-year-old student can legally receive funds through a trusted parent or guardian's bank/PayPal account, or use parent-guided teen accounts. Encourage them to stay focused on their studies.
+4. If they ask about the age requirement for JAMB/universities: explain that the Federal Ministry of Education set guidelines regarding age 16 for university admission eligibility, and emphasize preparing well for their UTME.
+5. RESTRICTIONS & POLICY:
+   - Strictly refuse any requests for exam runs, expo, hacking JAMB, or illegal score upgrades. Tell them firmly but politely that JAMB CBT is automated and secure, and anyone offering score upgrade is a scammer.
+   - Maintain a friendly, supportive Nigerian sisterly mentor tone ("scholar", "my friend").
+Keep responses concise, clear, and easy to read on mobile.`;
 
     const contents = [
-      ...(history || []).slice(-4).map((h: { role: string; content: string }) => ({
+      ...(history || []).slice(-6).map((h: { role: string; content: string }) => ({
         role: h.role === 'user' ? 'user' : 'model',
         parts: [{ text: h.content }],
       })),
@@ -88,11 +109,11 @@ Keep responses concise, super helpful, and lightning fast.`;
     ];
 
     const timeoutPromise = new Promise<{ text?: string }>((_, reject) =>
-      setTimeout(() => reject(new Error('TIMEOUT')), 9000)
+      setTimeout(() => reject(new Error('TIMEOUT')), 8000)
     );
 
     const apiPromise = ai.models.generateContent({
-      model: 'gemini-3.1-flash-lite',
+      model: 'gemini-3.8-flash',
       contents,
       config: {
         systemInstruction,
@@ -101,10 +122,11 @@ Keep responses concise, super helpful, and lightning fast.`;
     });
 
     const response = (await Promise.race([apiPromise, timeoutPromise])) as { text?: string };
-    const reply = response.text || getSmartReply(message);
+    const reply = response.text || getSmartReply(message, history);
     return res.status(200).json({ reply });
   } catch {
     const message = req.body?.message || '';
-    return res.status(200).json({ reply: getSmartReply(message) });
+    const history = req.body?.history || [];
+    return res.status(200).json({ reply: getSmartReply(message, history) });
   }
 }
