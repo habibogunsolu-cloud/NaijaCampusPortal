@@ -1,0 +1,32 @@
+{
+  "id": "/",
+  "name": "NaijaCampus All-in-One Portal",
+  "short_name": "NaijaCampus",
+  "description": "All-in-one Nigerian portal for JAMB UTME, WAEC, NECO, university course cut-offs, and Read Hub study desk.",
+  "theme_color": "#064e3b",
+  "background_color": "#064e3b",
+  "display": "standalone",
+  "orientation": "portrait",
+  "start_url": "/",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/pwa-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

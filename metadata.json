@@ -1,0 +1,6 @@
+{
+  "name": "NaijaCampus Admission Guide",
+  "description": "All-in-one Nigerian portal for JAMB UTME, WAEC, NECO, university and polytechnic course cut-off marks, and Read Hub AI study assistant.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
