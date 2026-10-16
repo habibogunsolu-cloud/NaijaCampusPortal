@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { CourseItem } from '../data/jambData';
 import { Download, Share2, CheckCircle2, Award, Shield, Sparkles, Check, BookmarkCheck, Bookmark } from 'lucide-react';
 import { getSafeShareUrl, openWhatsAppShare } from '../utils/shareUtils';
+import { trackAdClick } from '../utils/analyticsTracker';
 import { db, auth } from '../firebase';
 import { collection, addDoc } from 'firebase/firestore';
 
@@ -238,6 +239,7 @@ export const AdmissionCardCanvas: React.FC<AdmissionCardCanvasProps> = ({
           adA.click();
           document.body.removeChild(adA);
           onAdTriggered();
+          trackAdClick('admission_card');
         } catch (adErr) {
           console.warn('Ad link click handled:', adErr);
         }

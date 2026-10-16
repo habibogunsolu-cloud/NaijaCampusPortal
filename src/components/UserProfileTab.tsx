@@ -15,20 +15,29 @@ import {
   BookOpen,
   Download,
   Smartphone,
+  RefreshCw,
 } from 'lucide-react';
 import {
   getAllAvailableNovels,
   getActiveNovel,
   setActiveNovelId,
-  saveCustomNovel,
 } from '../data/readHubData';
+import { subscribeToAnalytics, AnalyticsStats } from '../utils/analyticsTracker';
+import { getSavedAdScript, saveAdScript } from '../utils/adScriptInjector';
 
 interface UserProfileTabProps {
   currentUser: User | null;
   monetagLink: string;
   onSaveMonetagLink: (newLink: string) => void;
+  secondaryAdLink?: string;
+  onSaveSecondaryAdLink?: (newLink: string) => void;
+  adStrategy?: 'monetag_only' | 'alternating';
+  onSaveAdStrategy?: (strategy: 'monetag_only' | 'alternating') => void;
   triggerCount: number;
+  dwellMinutes?: number;
   onOpenInstallModal?: () => void;
+  bannersEnabled?: boolean;
+  onToggleBanners?: (enabled: boolean) => void;
 }
 
 interface SavedSlip {
@@ -42,13 +51,22 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
   currentUser,
   monetagLink,
   onSaveMonetagLink,
+  secondaryAdLink = '',
+  onSaveSecondaryAdLink,
+  adStrategy = 'alternating',
+  onSaveAdStrategy,
   triggerCount,
+  dwellMinutes = 0,
   onOpenInstallModal,
+  bannersEnabled = true,
+  onToggleBanners,
 }) => {
   const [isAdminUnlocked, setIsAdminUnlocked] = useState(false);
   const [adminPin, setAdminPin] = useState('');
   const [pinError, setPinError] = useState('');
   const [linkInput, setLinkInput] = useState(monetagLink);
+  const [secondaryLinkInput, setSecondaryLinkInput] = useState(secondaryAdLink);
+  const [activeStrategy, setActiveStrategy] = useState<'monetag_only' | 'alternating'>(adStrategy);
   const [shareUrlInput, setShareUrlInput] = useState(() => {
     try {
       return localStorage.getItem('portal_custom_share_url') || '';
@@ -63,6 +81,24 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [loginNotice, setLoginNotice] = useState<string | null>(null);
   const [savedSlips, setSavedSlips] = useState<SavedSlip[]>([]);
+
+  // Real-time Visitor & Monetized Click Analytics from Firebase
+  const [analytics, setAnalytics] = useState<AnalyticsStats>({
+    totalVisits: 0,
+    uniqueVisitors: 0,
+    totalAdClicks: 0,
+    todayVisits: 0,
+    clicksByPlacement: {},
+  });
+  const [customAdScript, setCustomAdScript] = useState(() => getSavedAdScript());
+  const [isRefreshingAnalytics, setIsRefreshingAnalytics] = useState(false);
+
+  useEffect(() => {
+    const unsub = subscribeToAnalytics((stats) => {
+      setAnalytics(stats);
+    });
+    return () => unsub();
+  }, []);
 
   const availableNovels = getAllAvailableNovels();
 
@@ -141,6 +177,13 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
   const handleSaveLink = (e: React.FormEvent) => {
     e.preventDefault();
     onSaveMonetagLink(linkInput.trim());
+    saveAdScript(customAdScript.trim());
+    if (onSaveSecondaryAdLink) {
+      onSaveSecondaryAdLink(secondaryLinkInput.trim());
+    }
+    if (onSaveAdStrategy) {
+      onSaveAdStrategy(activeStrategy);
+    }
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 2000);
   };
@@ -362,96 +405,194 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
           </div>
         ) : (
           <div className="space-y-4 pt-2">
-            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-xs flex items-center justify-between">
-              <div>
-                <span className="text-emerald-900 font-bold block">Active Monetag Clicks:</span>
-                <span className="text-slate-600 text-[11px]">Recorded across student actions</span>
-              </div>
-              <span className="text-xl font-black text-emerald-800 font-mono">
-                {triggerCount} impressions
-              </span>
-            </div>
-
-            <form onSubmit={handleSaveLink} className="space-y-3">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Active Monetag Direct Link:
-                </label>
-                <input
-                  type="url"
-                  required
-                  value={linkInput}
-                  onChange={(e) => setLinkInput(e.target.value)}
-                  className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 focus:outline-hidden focus:border-emerald-700"
-                />
-              </div>
-
+            {/* 1. Simple Activity Card (Visitor counts & Clicks) */}
+            <div className="bg-slate-900 text-white rounded-2xl p-4 border border-slate-800 space-y-3">
               <div className="flex items-center justify-between">
-                <a
-                  href="https://publishers.monetag.com"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-xs text-emerald-800 font-bold hover:underline flex items-center gap-1"
-                >
-                  <span>Open Monetag Dashboard</span>
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-
+                <div>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-amber-400">
+                    Visitor &amp; Click Counts
+                  </h4>
+                  <p className="text-[11px] text-slate-400">
+                    Live counts of students visiting your portal
+                  </p>
+                </div>
                 <button
-                  type="submit"
-                  className="bg-emerald-900 hover:bg-emerald-800 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 transition cursor-pointer"
+                  type="button"
+                  onClick={() => {
+                    setIsRefreshingAnalytics(true);
+                    setTimeout(() => setIsRefreshingAnalytics(false), 800);
+                  }}
+                  className="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1 rounded-xl text-xs flex items-center gap-1 border border-slate-700 transition cursor-pointer"
                 >
-                  {isSaved ? <Check className="w-4 h-4 text-emerald-400" /> : <Save className="w-4 h-4" />}
-                  <span>{isSaved ? 'Updated!' : 'Save Direct Link'}</span>
+                  <RefreshCw className={`w-3 h-3 ${isRefreshingAnalytics ? 'animate-spin text-amber-400' : ''}`} />
+                  <span>Refresh</span>
                 </button>
               </div>
-            </form>
 
-            {/* Portal Public Share URL Management */}
-            <div className="pt-4 border-t border-slate-200">
-              <form onSubmit={handleSaveShareUrl} className="space-y-3">
+              {/* 3 Simple Number Boxes */}
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="bg-white/5 border border-white/10 rounded-xl p-2.5">
+                  <span className="text-[10px] text-slate-400 block font-medium">People Visited</span>
+                  <span className="text-xl sm:text-2xl font-black text-amber-400 font-mono block mt-0.5">
+                    {analytics.uniqueVisitors}
+                  </span>
+                </div>
+                <div className="bg-white/5 border border-white/10 rounded-xl p-2.5">
+                  <span className="text-[10px] text-slate-400 block font-medium">Total Page Opens</span>
+                  <span className="text-xl sm:text-2xl font-black text-white font-mono block mt-0.5">
+                    {analytics.totalVisits}
+                  </span>
+                </div>
+                <div className="bg-white/5 border border-white/10 rounded-xl p-2.5">
+                  <span className="text-[10px] text-slate-400 block font-medium">Ad Clicks</span>
+                  <span className="text-xl sm:text-2xl font-black text-emerald-400 font-mono block mt-0.5">
+                    {analytics.totalAdClicks}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* 2. In-App Ads & Monetag Settings */}
+            <div className="bg-white border border-slate-200 rounded-2xl p-4 space-y-3.5 shadow-xs">
+              <div className="flex items-center justify-between">
                 <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="text-xs font-bold text-slate-700">
-                      Portal Share Link (Attached to WhatsApp &amp; Counselor Shares):
-                    </label>
-                    <button
-                      type="button"
-                      onClick={handleResetShareUrl}
-                      className="text-[11px] text-slate-500 hover:text-slate-800 underline cursor-pointer"
-                    >
-                      Reset to Default
-                    </button>
-                  </div>
-                  <input
-                    type="url"
-                    placeholder="https://... (Leave blank to use current active URL)"
-                    value={shareUrlInput}
-                    onChange={(e) => setShareUrlInput(e.target.value)}
-                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 focus:outline-hidden focus:border-emerald-700"
-                  />
-                  <p className="text-[11px] text-slate-500 mt-1">
-                    Active URL used right now:{' '}
-                    <code className="text-emerald-800 font-bold font-mono">
-                      {shareUrlInput || (typeof window !== 'undefined' ? window.location.origin : '')}
-                    </code>
+                  <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wide">
+                    In-App Ads (Monetag)
+                  </h4>
+                  <p className="text-[11px] text-slate-500">
+                    Real ads display directly inside the app for all visitors
                   </p>
                 </div>
 
-                <div className="flex justify-end">
+                {/* Simple Banners Active Toggle */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onToggleBanners) {
+                      onToggleBanners(!bannersEnabled);
+                    }
+                  }}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer shrink-0 ${
+                    bannersEnabled
+                      ? 'bg-emerald-800 text-white hover:bg-emerald-700'
+                      : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
+                  }`}
+                >
+                  {bannersEnabled ? 'Banners: ON' : 'Banners: OFF'}
+                </button>
+              </div>
+
+              {/* Clean Single Form for Monetag Link / Ad Tag */}
+              <form onSubmit={handleSaveLink} className="space-y-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Your Monetag Link:
+                  </label>
+                  <input
+                    type="url"
+                    required
+                    value={linkInput}
+                    onChange={(e) => setLinkInput(e.target.value)}
+                    placeholder="https://uplcm.com/4/11981826"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 focus:outline-hidden focus:border-emerald-700"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold text-slate-700">
+                      Monetag In-App Ad Script (Optional):
+                    </label>
+                    {customAdScript && (
+                      <button
+                        type="button"
+                        onClick={() => setCustomAdScript('')}
+                        className="text-[10px] text-rose-600 hover:underline cursor-pointer"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                  <input
+                    type="text"
+                    value={customAdScript}
+                    onChange={(e) => setCustomAdScript(e.target.value)}
+                    placeholder="Optional: Paste In-Page Push or Banner code from Monetag"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 focus:outline-hidden focus:border-emerald-700"
+                  />
+                  <span className="text-[10px] text-slate-500 block mt-0.5">
+                    Leave empty if you only want to use your Monetag link above.
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between pt-1">
+                  <span className="text-[11px] text-slate-500">
+                    Active Link: <code className="text-emerald-800 font-bold">{linkInput}</code>
+                  </span>
                   <button
                     type="submit"
-                    className="bg-slate-800 hover:bg-slate-900 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 transition cursor-pointer"
+                    className="bg-emerald-900 hover:bg-emerald-800 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 transition cursor-pointer shadow-xs"
                   >
-                    {isShareUrlSaved ? <Check className="w-4 h-4 text-emerald-400" /> : <Save className="w-4 h-4" />}
-                    <span>{isShareUrlSaved ? 'Link Updated!' : 'Save Portal Link'}</span>
+                    {isSaved ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Save className="w-3.5 h-3.5" />}
+                    <span>{isSaved ? 'Saved!' : 'Save Ads'}</span>
                   </button>
                 </div>
               </form>
             </div>
 
-            {/* JAMB Prescribed Novel Real-Time Controller */}
-            <div className="pt-4 border-t border-slate-200">
+            {/* 3. WhatsApp Portal Share Link */}
+            <div className="bg-white border border-slate-200 rounded-2xl p-4 space-y-3 shadow-xs">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wide">
+                    WhatsApp Share Link
+                  </h4>
+                  <p className="text-[11px] text-slate-500">
+                    The link attached when students share to WhatsApp
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleResetShareUrl}
+                  className="text-[11px] text-slate-500 hover:text-slate-800 underline cursor-pointer"
+                >
+                  Reset
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveShareUrl} className="space-y-3">
+                <input
+                  type="url"
+                  placeholder="Leave empty to use the active app link automatically"
+                  value={shareUrlInput}
+                  onChange={(e) => setShareUrlInput(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 focus:outline-hidden focus:border-emerald-700"
+                />
+
+                <div className="flex items-center justify-between pt-0.5">
+                  <span className="text-[11px] text-slate-500 truncate max-w-xs">
+                    Current: <code className="text-emerald-800 font-bold">{shareUrlInput || (typeof window !== 'undefined' ? window.location.origin : '')}</code>
+                  </span>
+                  <button
+                    type="submit"
+                    className="bg-slate-800 hover:bg-slate-900 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 transition cursor-pointer"
+                  >
+                    {isShareUrlSaved ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Save className="w-3.5 h-3.5" />}
+                    <span>{isShareUrlSaved ? 'Saved!' : 'Save Link'}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            {/* 4. Active JAMB Novel */}
+            <div className="bg-white border border-slate-200 rounded-2xl p-4 space-y-3 shadow-xs">
+              <div className="flex items-center gap-1.5">
+                <BookOpen className="w-4 h-4 text-emerald-800" />
+                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wide">
+                  Active JAMB Novel
+                </h4>
+              </div>
+
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -461,36 +602,25 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
                 }}
                 className="space-y-3"
               >
-                <div>
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <BookOpen className="w-4 h-4 text-amber-500" />
-                    <label className="text-xs font-bold text-slate-800">
-                      Official JAMB Prescribed Novel (Real-Time Synchronizer):
-                    </label>
-                  </div>
-                  <select
-                    value={activeNovelState}
-                    onChange={(e) => setActiveNovelState(e.target.value)}
-                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-hidden focus:border-emerald-700 cursor-pointer"
-                  >
-                    {availableNovels.map((n) => (
-                      <option key={n.id} value={n.id}>
-                        {n.title} — {n.author} ({n.sessionTag || 'Prescribed Text'})
-                      </option>
-                    ))}
-                  </select>
-                  <p className="text-[11px] text-slate-500 mt-1">
-                    When JAMB changes or updates the prescribed literature book, changing this here immediately updates the questions, summaries, and Read Hub study desk for all students in real time.
-                  </p>
-                </div>
+                <select
+                  value={activeNovelState}
+                  onChange={(e) => setActiveNovelState(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-hidden focus:border-emerald-700 cursor-pointer"
+                >
+                  {availableNovels.map((n) => (
+                    <option key={n.id} value={n.id}>
+                      {n.title} — {n.author} ({n.sessionTag || 'Prescribed Text'})
+                    </option>
+                  ))}
+                </select>
 
                 <div className="flex justify-end">
                   <button
                     type="submit"
-                    className="bg-amber-600 hover:bg-amber-500 text-slate-950 font-black px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 transition cursor-pointer shadow-sm"
+                    className="bg-emerald-950 hover:bg-emerald-900 text-amber-300 border border-amber-500/50 font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 transition cursor-pointer shadow-xs"
                   >
-                    {isNovelSaved ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
-                    <span>{isNovelSaved ? 'Novel Synced!' : 'Set Active JAMB Novel'}</span>
+                    {isNovelSaved ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Save className="w-3.5 h-3.5" />}
+                    <span>{isNovelSaved ? 'Saved!' : 'Save Novel'}</span>
                   </button>
                 </div>
               </form>

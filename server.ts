@@ -15,12 +15,11 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
-// Initialize Google GenAI
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-});
+// Initialize Google GenAI if API key exists
+const apiKey = process.env.GEMINI_API_KEY || '';
+const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
-// Counselor AI Chat Endpoint with gemini-3.8-flash
+// Counselor AI Chat Endpoint with gemini-3.8-flash and zero-crash fallback
 app.post('/api/counselor', async (req, res) => {
   const msg = (req.body?.message || '').trim().toLowerCase();
   const { message, history } = req.body;
@@ -43,51 +42,8 @@ app.post('/api/counselor', async (req, res) => {
     });
   }
 
-  try {
-    const systemInstruction = `You are Counselor Chioma, an elite, warm, highly knowledgeable Nigerian university, polytechnic & JAMB admissions advisor for Nigerian students and candidates for the 2026/2027 academic session.
-CRITICAL INSTRUCTIONS:
-1. ALWAYS respond directly and contextually to ANY message or question the student sends! Never give a generic template if they ask a specific question.
-2. If they ask follow-ups ("Why", "How", "What do you mean?", "What if", etc.), answer based on conversation history.
-3. If they ask about money/earnings (like Monetag, PayPal, or bank accounts at age 16 in Nigeria): explain kindly that in Nigeria, international payment platforms like PayPal and independent commercial bank accounts require being 18+ (with BVN/NIN). A 16-year-old student can legally receive funds through a trusted parent or guardian's bank/PayPal account, or use parent-guided teen accounts. Encourage them to stay focused on their studies.
-4. If they ask about the age requirement for JAMB/universities: explain that the Federal Ministry of Education set guidelines regarding age 16 for university admission eligibility, and emphasize preparing well for their UTME.
-5. RESTRICTIONS & POLICY:
-   - Strictly refuse any requests for exam runs, expo, hacking JAMB, or illegal score upgrades. Tell them firmly but politely that JAMB CBT is automated and secure, and anyone offering score upgrade is a scammer.
-   - Maintain a friendly, supportive Nigerian sisterly mentor tone ("scholar", "my friend").
-Keep responses concise, clear, and easy to read on mobile.`;
-
-    const contents = [
-      ...(history || []).slice(-6).map((h: { role: string; content: string }) => ({
-        role: h.role === 'user' ? 'user' : 'model',
-        parts: [{ text: h.content }],
-      })),
-      {
-        role: 'user',
-        parts: [{ text: message }],
-      },
-    ];
-
-    // 8-second timeout safeguard to allow standard Gemini generation without hanging
-    const timeoutPromise = new Promise<{ text: string }>((_, reject) =>
-      setTimeout(() => reject(new Error('TIMEOUT')), 8000)
-    );
-
-    const apiPromise = ai.models.generateContent({
-      model: 'gemini-3.8-flash',
-      contents,
-      config: {
-        systemInstruction,
-        temperature: 0.6,
-      },
-    });
-
-    const response = (await Promise.race([apiPromise, timeoutPromise])) as { text?: string };
-    const reply = response.text || "Hello scholar! How is your exam preparation going? Tell me what course, score, or institution you are targeting, and I will give you the exact 4 JAMB subjects, cut-off marks, and admission strategy right now.";
-
-    res.json({ reply });
-  } catch {
-    // Intelligent contextual fallback when network/API is unavailable
+  const generateLocalReply = () => {
     let smartReply = `Hello scholar! I hear you regarding "${message}". Tell me more about what you need assistance with — whether it is choosing your 4 JAMB subjects, calculating your cut-off aggregate, study schedules, or institution advice!`;
-
     const recentHistory = (history || []).map((h: any) => h.content || '').join(' ').toLowerCase();
 
     // 16 years old / monetag / paypal / student finances
@@ -122,8 +78,80 @@ Keep responses concise, clear, and easy to read on mobile.`;
     } else if (msg.includes('catchment')) {
       smartReply = "Catchment Area Rule:\nFederal universities reserve 35% of their admission quota for candidates from their surrounding catchment states. For example, UNILAG gives lower merit cut-offs to students from Lagos, Ogun, Oyo, Osun, Ondo, and Ekiti!";
     }
+    return smartReply;
+  };
 
-    res.json({ reply: smartReply });
+  if (!ai || !apiKey) {
+    return res.json({ reply: generateLocalReply() });
+  }
+
+  try {
+    const systemInstruction = `You are Counselor Chioma, an elite, warm, highly knowledgeable Nigerian university, polytechnic & JAMB admissions advisor for Nigerian students and candidates for the 2026/2027 academic session.
+CRITICAL INSTRUCTIONS:
+1. ALWAYS respond directly and contextually to ANY message or question the student sends! Never give a generic template if they ask a specific question.
+2. If they ask follow-ups ("Why", "How", "What do you mean?", "What if", etc.), answer based on conversation history.
+3. If they ask about money/earnings (like Monetag, PayPal, or bank accounts at age 16 in Nigeria): explain kindly that in Nigeria, international payment platforms like PayPal and independent commercial bank accounts require being 18+ (with BVN/NIN). A 16-year-old student can legally receive funds through a trusted parent or guardian's bank/PayPal account, or use parent-guided teen accounts. Encourage them to stay focused on their studies.
+4. If they ask about the age requirement for JAMB/universities: explain that the Federal Ministry of Education set guidelines regarding age 16 for university admission eligibility, and emphasize preparing well for their UTME.
+5. RESTRICTIONS & POLICY:
+   - Strictly refuse any requests for exam runs, expo, hacking JAMB, or illegal score upgrades. Tell them firmly but politely that JAMB CBT is automated and secure, and anyone offering score upgrade is a scammer.
+   - Maintain a friendly, supportive Nigerian sisterly mentor tone ("scholar", "my friend").
+Keep responses concise, clear, and easy to read on mobile.`;
+
+    // Ensure contents starts with user and strictly alternates
+    const validHistory: { role: 'user' | 'model'; parts: { text: string }[] }[] = [];
+    let currentExpectedRole: 'user' | 'model' = 'user';
+
+    const rawHistory = Array.isArray(history) ? history : [];
+    for (const item of rawHistory) {
+      if (!item || typeof item.content !== 'string' || !item.content.trim()) continue;
+      const itemRole = item.role === 'model' ? 'model' : 'user';
+
+      if (validHistory.length === 0) {
+        // First message MUST be user
+        if (itemRole === 'user') {
+          validHistory.push({ role: 'user', parts: [{ text: item.content.trim() }] });
+          currentExpectedRole = 'model';
+        }
+      } else {
+        if (itemRole === currentExpectedRole) {
+          validHistory.push({ role: itemRole, parts: [{ text: item.content.trim() }] });
+          currentExpectedRole = currentExpectedRole === 'user' ? 'model' : 'user';
+        } else {
+          // Merge consecutive same-role text
+          const last = validHistory[validHistory.length - 1];
+          last.parts[0].text += `\n${item.content.trim()}`;
+        }
+      }
+    }
+
+    // Now append the current user query
+    if (validHistory.length > 0 && validHistory[validHistory.length - 1].role === 'user') {
+      validHistory[validHistory.length - 1].parts[0].text += `\n${message.trim()}`;
+    } else {
+      validHistory.push({ role: 'user', parts: [{ text: message.trim() }] });
+    }
+
+    const timeoutPromise = new Promise<{ text?: string }>((_, reject) =>
+      setTimeout(() => reject(new Error('TIMEOUT')), 8000)
+    );
+
+    const apiPromise = ai.models
+      .generateContent({
+        model: 'gemini-3.8-flash',
+        contents: validHistory,
+        config: {
+          systemInstruction,
+          temperature: 0.6,
+        },
+      })
+      .catch(() => ({ text: '' }));
+
+    const response = (await Promise.race([apiPromise, timeoutPromise])) as { text?: string };
+    const reply = response.text?.trim() || generateLocalReply();
+
+    res.json({ reply });
+  } catch {
+    res.json({ reply: generateLocalReply() });
   }
 });
 
@@ -131,6 +159,21 @@ Keep responses concise, clear, and easy to read on mobile.`;
 app.post('/api/readhub-ai', async (req, res) => {
   const { question, subject, exam, mode, userPrompt } = req.body;
   const prompt = (userPrompt || '').toLowerCase();
+
+  const getFallbackReply = () => {
+    let fallbackReply = `Here is the key strategy for ${subject || 'this subject'}: Master the fundamental definitions, eliminate extreme distractor options first, and beware of negative question keywords like 'EXCEPT' or 'CANNOT'.`;
+
+    if (mode === 'hint') {
+      fallbackReply = `💡 Tutor Hint: Look closely at the core principle in ${subject}. Eliminate options with negative or invalid values first, and recall the standard formula before calculating!`;
+    } else if (prompt.includes('trick') || prompt.includes('trap')) {
+      fallbackReply = `🎯 Examiner Trap in ${subject}: Examiners intentionally place the result of the intermediate step as Option A to trap hasty candidates. Always complete the final substitution before picking your option!`;
+    }
+    return fallbackReply;
+  };
+
+  if (!ai || !apiKey) {
+    return res.json({ reply: getFallbackReply() });
+  }
 
   try {
     const systemInstruction = `You are the Naija Read Hub AI Tutor for Nigerian secondary and university entrance exams (${exam || 'JAMB UTME'}).
@@ -145,32 +188,25 @@ Keep your explanation clear, practical, direct, and encouraging. Never be verbos
       userText = `Provide a clever HINT for this question WITHOUT revealing the final answer directly. Point the student to the formula or rule to use. Question: ${question}`;
     }
 
-    const timeoutPromise = new Promise<{ text: string }>((_, reject) =>
-      setTimeout(() => reject(new Error('TIMEOUT')), 12000)
+    const timeoutPromise = new Promise<{ text?: string }>((_, reject) =>
+      setTimeout(() => reject(new Error('TIMEOUT')), 8000)
     );
 
-    const apiPromise = ai.models.generateContent({
-      model: 'gemini-3.8-flash',
-      contents: [{ role: 'user', parts: [{ text: userText }] }],
-      config: {
-        systemInstruction,
-        temperature: 0.5,
-      },
-    });
+    const apiPromise = ai.models
+      .generateContent({
+        model: 'gemini-3.8-flash',
+        contents: [{ role: 'user', parts: [{ text: userText }] }],
+        config: {
+          systemInstruction,
+          temperature: 0.5,
+        },
+      })
+      .catch(() => ({ text: '' }));
 
-    const response = await Promise.race([apiPromise, timeoutPromise]) as { text?: string };
-    res.json({ reply: response.text });
+    const response = (await Promise.race([apiPromise, timeoutPromise])) as { text?: string };
+    res.json({ reply: response.text?.trim() || getFallbackReply() });
   } catch {
-    // Intelligent instant study fallback
-    let fallbackReply = `Here is the key strategy for ${subject || 'this subject'}: Master the fundamental definitions, eliminate extreme distractor options first, and beware of negative question keywords like 'EXCEPT' or 'CANNOT'.`;
-
-    if (mode === 'hint') {
-      fallbackReply = `💡 Tutor Hint: Look closely at the core principle in ${subject}. Eliminate options with negative or invalid values first, and recall the standard formula before calculating!`;
-    } else if (prompt.includes('trick') || prompt.includes('trap')) {
-      fallbackReply = `🎯 Examiner Trap in ${subject}: Examiners intentionally place the result of the intermediate step as Option A to trap hasty candidates. Always complete the final substitution before picking your option!`;
-    }
-
-    res.json({ reply: fallbackReply });
+    res.json({ reply: getFallbackReply() });
   }
 });
 

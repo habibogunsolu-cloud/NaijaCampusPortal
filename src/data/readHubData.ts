@@ -1,3 +1,5 @@
+import { ADDITIONAL_THEORY_QUESTIONS } from './questions/theoryQuestions';
+
 export interface NovelChapter {
   chapter: number;
   title: string;
@@ -2544,3 +2546,12 @@ export const EXPANDED_THEORY_QUESTIONS: Record<string, TheoryItem[]> = {
     },
   ],
 };
+
+// Massively expand Theory questions with authentic WAEC, NECO & Post-UTME questions
+Object.entries(ADDITIONAL_THEORY_QUESTIONS).forEach(([subj, list]) => {
+  if (EXPANDED_THEORY_QUESTIONS[subj]) {
+    EXPANDED_THEORY_QUESTIONS[subj].push(...list);
+  } else {
+    EXPANDED_THEORY_QUESTIONS[subj] = list;
+  }
+});

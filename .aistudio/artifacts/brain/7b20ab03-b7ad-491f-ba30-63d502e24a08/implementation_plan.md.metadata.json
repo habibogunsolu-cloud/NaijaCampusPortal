@@ -1,0 +1,6 @@
+{
+  "summary": "Implementation plan to remove all balance and currency checking boxes from the admin panel while preserving the clean impression and dwell time counters, and implement intelligent ad cooldowns (frequency capping) to protect the user's Monetag account against policy warnings.",
+  "updatedAt": "2026-10-13T21:42:55.847234645Z",
+  "requestFeedback": true,
+  "userFacing": true
+}

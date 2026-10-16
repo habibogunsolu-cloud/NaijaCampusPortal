@@ -875,6 +875,25 @@ export const ReadHubTab: React.FC<ReadHubTabProps> = ({
                   <p className="mt-0.5 leading-relaxed">{currentTheory.examinerAdvice}</p>
                 </div>
               </div>
+
+              {/* Theory Full Solutions PDF Download */}
+              <div className="bg-gradient-to-r from-emerald-950 to-slate-900 text-white rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-sm border border-emerald-800">
+                <div className="space-y-0.5 text-center sm:text-left">
+                  <span className="text-xs font-black text-amber-300 block">
+                    📥 Download 15-Year Theory Marking Guide &amp; Past Questions (PDF)
+                  </span>
+                  <p className="text-[11px] text-emerald-200">
+                    Get the complete official WAEC/NECO marking schemes with step-by-step mark allocations.
+                  </p>
+                </div>
+                <button
+                  onClick={handleUnlockMore}
+                  className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition cursor-pointer shrink-0 shadow-md"
+                >
+                  <span>Download Theory Guide</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -1099,6 +1118,25 @@ export const ReadHubTab: React.FC<ReadHubTabProps> = ({
                     {currentChapterData.keyQuotes.join('  •  ')}
                   </div>
                 )}
+
+                {/* Novel PDF Download & 150 Questions Card */}
+                <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
+                  <div className="space-y-0.5 text-center sm:text-left">
+                    <span className="text-xs font-black text-amber-950 block">
+                      📥 Download Full Novel Companion &amp; 150 Practice Questions (PDF)
+                    </span>
+                    <p className="text-[11px] text-amber-900">
+                      Complete chapter summaries, character guides, themes, and 150 official JAMB-standard questions.
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleUnlockMore}
+                    className="bg-emerald-950 hover:bg-emerald-900 text-amber-300 border border-amber-400 font-black text-xs px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition cursor-pointer shrink-0 shadow-sm"
+                  >
+                    <span>Download Novel PDF</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             </div>
           )}

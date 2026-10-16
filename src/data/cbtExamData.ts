@@ -1,3 +1,18 @@
+import { ADDITIONAL_ENGLISH_QUESTIONS } from './questions/englishQuestions';
+import { ADDITIONAL_MATH_QUESTIONS } from './questions/mathematicsQuestions';
+import {
+  ADDITIONAL_BIOLOGY_QUESTIONS,
+  ADDITIONAL_CHEMISTRY_QUESTIONS,
+  ADDITIONAL_PHYSICS_QUESTIONS,
+} from './questions/scienceQuestions';
+import {
+  ADDITIONAL_ECONOMICS_QUESTIONS,
+  ADDITIONAL_GOVERNMENT_QUESTIONS,
+  ADDITIONAL_LITERATURE_QUESTIONS,
+  ADDITIONAL_NOVEL_QUESTIONS,
+} from './questions/artsAndCommercialQuestions';
+import { MULTI_EXAM_PAST_QUESTIONS } from './questions/multiExamPastQuestions';
+
 export interface CbtQuestion {
   id: number;
   subject: string;
@@ -9,6 +24,7 @@ export interface CbtQuestion {
   hint: string;
   year: string;
   topic: string;
+  examBody?: 'JAMB' | 'WAEC' | 'NECO' | 'Post-UTME' | string;
 }
 
 export interface CbtSubjectInfo {
@@ -21,8 +37,20 @@ export interface CbtSubjectInfo {
   description: string;
 }
 
+export const CBT_EXAM_BODIES = [
+  'All Exams',
+  'JAMB UTME',
+  'WAEC SSCE',
+  'NECO SSCE',
+  'Post-UTME',
+] as const;
+
+export type CbtExamBody = (typeof CBT_EXAM_BODIES)[number];
+
 export const CBT_EXAM_YEARS = [
   'All Years',
+  '2026',
+  '2025',
   '2024',
   '2023',
   '2022',
@@ -3841,6 +3869,47 @@ export const CBT_QUESTIONS_BANK: Record<string, CbtQuestion[]> = {
   ]
 };
 
+// Massively expand question bank with authentic past questions across years
+if (CBT_QUESTIONS_BANK['English']) {
+  CBT_QUESTIONS_BANK['English'].push(...ADDITIONAL_ENGLISH_QUESTIONS);
+}
+if (CBT_QUESTIONS_BANK['Mathematics']) {
+  CBT_QUESTIONS_BANK['Mathematics'].push(...ADDITIONAL_MATH_QUESTIONS);
+}
+if (CBT_QUESTIONS_BANK['Biology']) {
+  CBT_QUESTIONS_BANK['Biology'].push(...ADDITIONAL_BIOLOGY_QUESTIONS);
+}
+if (CBT_QUESTIONS_BANK['Chemistry']) {
+  CBT_QUESTIONS_BANK['Chemistry'].push(...ADDITIONAL_CHEMISTRY_QUESTIONS);
+}
+if (CBT_QUESTIONS_BANK['Physics']) {
+  CBT_QUESTIONS_BANK['Physics'].push(...ADDITIONAL_PHYSICS_QUESTIONS);
+}
+if (CBT_QUESTIONS_BANK['Economics']) {
+  CBT_QUESTIONS_BANK['Economics'].push(...ADDITIONAL_ECONOMICS_QUESTIONS);
+}
+if (CBT_QUESTIONS_BANK['Government']) {
+  CBT_QUESTIONS_BANK['Government'].push(...ADDITIONAL_GOVERNMENT_QUESTIONS);
+}
+if (CBT_QUESTIONS_BANK['Literature']) {
+  CBT_QUESTIONS_BANK['Literature'].push(...ADDITIONAL_LITERATURE_QUESTIONS);
+}
+if (CBT_QUESTIONS_BANK['Novel']) {
+  CBT_QUESTIONS_BANK['Novel'].push(...ADDITIONAL_NOVEL_QUESTIONS);
+}
+
+// Merge Authentic Multi-Exam Past Questions Bank (WAEC, NECO, JAMB, Post-UTME 2020-2026)
+Object.entries(MULTI_EXAM_PAST_QUESTIONS).forEach(([subj, questions]) => {
+  if (CBT_QUESTIONS_BANK[subj]) {
+    // Avoid duplicate IDs if already present
+    const existingIds = new Set(CBT_QUESTIONS_BANK[subj].map((q) => q.id));
+    const newQuestions = questions.filter((q) => !existingIds.has(q.id));
+    CBT_QUESTIONS_BANK[subj].push(...newQuestions);
+  } else {
+    CBT_QUESTIONS_BANK[subj] = [...questions];
+  }
+});
+
 export interface CbtMockExamState {
   registeredSubjects: string[];
   currentSubjectIndex: number;
@@ -3857,27 +3926,70 @@ export interface CbtMockExamState {
   };
 }
 
-export function getQuestionsForSubject(subject: string, year?: string): CbtQuestion[] {
+export function getQuestionsForSubject(subject: string, year?: string, examBody?: string): CbtQuestion[] {
   const bank = CBT_QUESTIONS_BANK[subject] || CBT_QUESTIONS_BANK['English'] || [];
-  if (!year || year === 'All Years') {
+  
+  const hasYearFilter = year && year !== 'All Years';
+  const hasExamFilter = examBody && examBody !== 'All Exams';
+
+  if (!hasYearFilter && !hasExamFilter) {
     return bank;
   }
-  const filtered = bank.filter((q) => q.year.includes(year));
-  if (filtered.length > 0) {
-    return filtered;
+
+  // Helper to match exam body
+  const matchExam = (q: CbtQuestion) => {
+    if (!hasExamFilter) return true;
+    const bodyLower = examBody.toLowerCase();
+    const qBody = (q.examBody || '').toLowerCase();
+    const qYear = q.year.toLowerCase();
+    if (bodyLower.includes('waec')) return qBody.includes('waec') || qYear.includes('waec');
+    if (bodyLower.includes('neco')) return qBody.includes('neco') || qYear.includes('neco');
+    if (bodyLower.includes('jamb')) return qBody.includes('jamb') || qYear.includes('jamb') || qYear.includes('utme');
+    if (bodyLower.includes('post-utme') || bodyLower.includes('screening')) return qBody.includes('post') || qYear.includes('post') || qYear.includes('screening');
+    return true;
+  };
+
+  // Helper to match year
+  const matchYear = (q: CbtQuestion) => {
+    if (!hasYearFilter) return true;
+    return q.year.includes(year);
+  };
+
+  // 1. Try exact match for both year and exam body
+  const exactMatches = bank.filter((q) => matchExam(q) && matchYear(q));
+  if (exactMatches.length > 0) {
+    return exactMatches;
   }
-  // Fallback if specific year has fewer questions
+
+  // 2. If no exact match for both, try matching year first
+  if (hasYearFilter) {
+    const yearMatches = bank.filter((q) => matchYear(q));
+    if (yearMatches.length > 0) {
+      return yearMatches;
+    }
+  }
+
+  // 3. Try matching exam body
+  if (hasExamFilter) {
+    const examMatches = bank.filter((q) => matchExam(q));
+    if (examMatches.length > 0) {
+      return examMatches;
+    }
+  }
+
+  // Fallback if specific combo has fewer questions
   return bank;
 }
 
 export function calculateExamResults(
   registeredSubjects: string[],
   answers: Record<string, Record<number, 'A' | 'B' | 'C' | 'D'>>,
-  year?: string
+  year?: string,
+  examBody?: string
 ) {
   let totalScoreScaled = 0;
   const subjectScores = registeredSubjects.map((subj) => {
-    const questions = getQuestionsForSubject(subj, year);
+    const questions = getQuestionsForSubject(subj, year, examBody);
     const subjAnswers = answers[subj] || {};
     let correctCount = 0;
     questions.forEach((q) => {

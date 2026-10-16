@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import {
   getSafeShareUrl,
+  buildFreshersShareMessage,
   buildGeneralPortalShareMessage,
   buildSchoolCutOffShareMessage,
   buildReadHubShareMessage,
@@ -28,7 +29,7 @@ import type { UniversityItem, CourseCutOff } from '../data/jambData';
 interface ShareModalProps {
   isOpen: boolean;
   onClose: () => void;
-  initialCategory?: 'all' | 'counselor' | 'cutoffs' | 'readhub' | 'olevel';
+  initialCategory?: 'freshers' | 'all' | 'counselor' | 'cutoffs' | 'readhub' | 'olevel';
   targetUniversity?: UniversityItem | null;
   targetCourse?: CourseCutOff | null;
 }
@@ -36,11 +37,11 @@ interface ShareModalProps {
 export const ShareModal: React.FC<ShareModalProps> = ({
   isOpen,
   onClose,
-  initialCategory = 'all',
+  initialCategory = 'freshers',
   targetUniversity,
   targetCourse,
 }) => {
-  const [activeTab, setActiveTab] = useState<'all' | 'counselor' | 'cutoffs' | 'readhub' | 'olevel'>(
+  const [activeTab, setActiveTab] = useState<'freshers' | 'all' | 'counselor' | 'cutoffs' | 'readhub' | 'olevel'>(
     targetUniversity ? 'cutoffs' : initialCategory
   );
   const [copiedType, setCopiedType] = useState<'full' | 'link' | null>(null);
@@ -52,6 +53,8 @@ export const ShareModal: React.FC<ShareModalProps> = ({
   // Determine current share text based on selected tab and target data
   const getActiveText = (): string => {
     switch (activeTab) {
+      case 'freshers':
+        return buildFreshersShareMessage();
       case 'counselor':
         return buildCounselorAdviceShareMessage();
       case 'cutoffs':
@@ -136,6 +139,18 @@ export const ShareModal: React.FC<ShareModalProps> = ({
 
         {/* Category Tabs */}
         <div className="bg-slate-100 p-2 border-b border-slate-200 flex flex-wrap gap-1.5 text-xs font-bold">
+          <button
+            onClick={() => setActiveTab('freshers')}
+            className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition cursor-pointer ${
+              activeTab === 'freshers'
+                ? 'bg-emerald-900 text-white shadow-xs'
+                : 'bg-white text-slate-700 hover:text-slate-900 border border-slate-200'
+            }`}
+          >
+            <GraduationCap className="w-3.5 h-3.5 text-amber-400" />
+            <span>100L Freshers &amp; Clearance 🎓</span>
+          </button>
+
           <button
             onClick={() => setActiveTab('all')}
             className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition cursor-pointer ${

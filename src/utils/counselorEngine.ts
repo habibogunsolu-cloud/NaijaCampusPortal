@@ -64,11 +64,38 @@ export function recordCounselorQuestion(): void {
 
 /**
  * Filter out abusive queries, illegal exam expo requests, or non-educational spam.
+ * CRITICAL: Strictly protects administrative passcodes, internal PINs, and monetization secrets.
  */
 export function checkMessageRestrictions(message: string): { restricted: boolean; response?: string } {
   const lower = message.toLowerCase().trim();
 
-  // 1. Cheating / Expo / Malpractice restriction
+  // 1. Strict Secret & Admin Protection (Zero leak of PIN 017014, Monetag earnings, or internal controls)
+  if (
+    lower.includes('secret') ||
+    lower.includes('pin') ||
+    lower.includes('passcode') ||
+    lower.includes('admin') ||
+    lower.includes('017014') ||
+    lower.includes('password') ||
+    lower.includes('monetag') ||
+    lower.includes('revenue') ||
+    lower.includes('balance') ||
+    (lower.includes('how much') && (lower.includes('earn') || lower.includes('make') || lower.includes('profit'))) ||
+    lower.includes('system prompt') ||
+    lower.includes('instruction') ||
+    lower.includes('developer') ||
+    lower.includes('backdoor')
+  ) {
+    return {
+      restricted: true,
+      response:
+        "Hello scholar! 😊 I am Counselor Chioma, an academic advisor dedicated strictly to helping candidates with admission clearance, 100L courses, screening documents, and study plans.\n\n" +
+        "I do not possess or disclose administrative passcodes, internal system configurations, or developer credentials.\n\n" +
+        "How can I help you with your university clearance, 100L CGPA target, or faculty documents today?",
+    };
+  }
+
+  // 2. Cheating / Expo / Malpractice restriction
   if (
     lower.includes('expo') ||
     lower.includes('runz') ||
@@ -88,7 +115,7 @@ export function checkMessageRestrictions(message: string): { restricted: boolean
     };
   }
 
-  // 2. Vulgarity / Abusive spam check
+  // 3. Vulgarity / Abusive spam check
   const vulgarWords = ['fool', 'idiot', 'bastard', 'fuck', 'stupid', 'mad', 'nonsense', 'mumu'];
   const hasOnlyAbuse = vulgarWords.some((w) => lower === w || lower === `${w}!`);
   if (hasOnlyAbuse) {
@@ -126,6 +153,103 @@ export function generateSmartCounselorReply(
     .map((h) => h.content.toLowerCase())
     .join(' ');
   const context = `${recentUserTexts} ${recentModelTexts}`;
+
+  // 0A. FUMMSA (Federal University of Medicine and Medical Sciences, Abeokuta) Guidance
+  if (
+    lower.includes('fummsa') ||
+    (lower.includes('abeokuta') && (lower.includes('medicine') || lower.includes('medical') || lower.includes('admission') || lower.includes('clearance')))
+  ) {
+    return (
+      "🏥 **FUMMSA Abeokuta — 100L Freshers & Clearance Guide:**\n\n" +
+      "Congratulations on your admission to the Federal University of Medicine and Medical Sciences, Abeokuta (FUMMSA)!\n\n" +
+      "**1. Physical Clearance Documents You Must Bring:**\n" +
+      "• Original JAMB Admission Letter (Colored — Candidate & Institution copies)\n" +
+      "• JAMB Original Result Slip with photograph\n" +
+      "• O'Level Result (WAEC/NECO) + fresh unused Scratch Card Pin for verification\n" +
+      "• FUMMSA Acceptance Fee Payment Receipt (via Remita)\n" +
+      "• Birth Certificate or NPC Age Declaration\n" +
+      "• Local Government (LGA) Identification Certificate\n" +
+      "• Medical Fitness Certificate & Lab Test Report (Blood Group, Genotype, Urinalysis, Chest X-Ray)\n" +
+      "• Two (2) Attestation/Reference letters (from Clergy, Lawyer, or Senior Civil Servant)\n" +
+      "• 8–12 Passport photographs (white background)\n\n" +
+      "**2. 100L MBBS & Health Sciences Academic Targets:**\n" +
+      "In 100L, you will write General Biology (BIO 101/102), Chemistry (CHM 101/102), Physics (PHY 101/102), and GST courses. To remain safe in Medicine & Surgery (MBBS) or Pharmacy, target a 4.5+ CGPA on the 5.0 scale!\n\n" +
+      "Check our **Freshers Hub** tab to tick off your clearance checklist and calculate your 100L CGPA!"
+    );
+  }
+
+  // 0B. University Screening Documents & Physical Clearance Queries
+  if (
+    lower.includes('clearance') ||
+    lower.includes('screening document') ||
+    lower.includes('physical screening') ||
+    lower.includes('documents to carry') ||
+    lower.includes('what documents') ||
+    lower.includes('screening day')
+  ) {
+    return (
+      "📋 **Official University Physical Screening Checklist for Freshers:**\n\n" +
+      "When travelling to campus for screening, prepare **3 photocopies of each** in 3 separate office file jackets:\n\n" +
+      "1. **JAMB Original Admission Letter:** Colored printout from portal.jamb.gov.ng\n" +
+      "2. **JAMB Result Slip:** Showing your passport photograph and full score breakdown\n" +
+      "3. **O'Level Result & Scratch Card:** WAEC/NECO/NABTEB slip plus a new verification scratch card for the screening officer\n" +
+      "4. **Acceptance Fee Receipt:** University Remita RRR receipt\n" +
+      "5. **Birth Certificate / NPC Age Declaration:** High Court affidavit or National Population Commission cert\n" +
+      "6. **LGA Certificate of Origin:** Proving your catchment/state eligibility\n" +
+      "7. **Medical Fitness Report:** Including blood group, genotype, and chest X-ray\n" +
+      "8. **Reference / Attestation Letters:** 2 copies on official letterhead\n" +
+      "9. **Passports:** 8–12 copies with your name and JAMB reg number written on the back\n\n" +
+      "You can tick these off live inside our **Freshers Hub** tab!"
+    );
+  }
+
+  // 0C. 100L CGPA / First Class / 5.0 Scale Advice
+  if (
+    lower.includes('cgpa') ||
+    lower.includes('gpa') ||
+    lower.includes('first class') ||
+    lower.includes('5.0') ||
+    lower.includes('grade point') ||
+    lower.includes('quality point') ||
+    lower.includes('carryover')
+  ) {
+    return (
+      "📊 **100L CGPA & First Class Target Guide (5.0 Scale):**\n\n" +
+      "• **Grading Scale in Nigerian Universities:**\n" +
+      "  - A (70–100%) = 5 Points\n" +
+      "  - B (60–69%) = 4 Points\n" +
+      "  - C (50–59%) = 3 Points\n" +
+      "  - D (45–49%) = 2 Points\n" +
+      "  - E (40–44%) = 1 Point\n" +
+      "  - F (0–39%) = 0 Points (Carryover!)\n\n" +
+      "• **How CGPA is Calculated:**\n" +
+      "  Multiply each course grade point by its credit units (e.g. A in 3-unit BIO 101 = 15 quality points). Divide Total Quality Points by Total Credit Units.\n\n" +
+      "• **Honours Classes:**\n" +
+      "  - 4.50 – 5.00: First Class Honours (MBBS Distinction)\n" +
+      "  - 3.50 – 4.49: Second Class Upper (2:1)\n" +
+      "  - 2.40 – 3.49: Second Class Lower (2:2)\n\n" +
+      "💡 *Tip:* 100 Level is where you build your cushion! Never miss Continuous Assessment (CA) tests — they count for 30–40% of your total score!"
+    );
+  }
+
+  // 0D. JAMB CAPS Acceptance & Acceptance Fee Payment
+  if (
+    lower.includes('caps') ||
+    lower.includes('accept admission') ||
+    lower.includes('acceptance fee') ||
+    lower.includes('admission letter') ||
+    lower.includes('remita')
+  ) {
+    return (
+      "📑 **How to Accept Admission on JAMB CAPS & Pay Acceptance Fee:**\n\n" +
+      "1. **Check CAPS on Phone:** Go to `portal.jamb.gov.ng/efacility`. Switch Chrome/browser to **'Desktop site'**.\n" +
+      "2. **Check Admission Status:** Click 'Check Admission Status' &rarr; 'Access My CAPS'.\n" +
+      "3. **Accept Prompt:** If admitted, click **'ACCEPT ADMISSION'** (never click Reject!).\n" +
+      "4. **Print Colored Admission Letter:** Print both the Candidate and Institution copies.\n" +
+      "5. **Pay University Acceptance Fee:** Log in to your university portal, generate your Remita RRR invoice, and pay via debit card or commercial bank before the deadline.\n\n" +
+      "Keep all printed receipts in your physical clearance folder!"
+    );
+  }
 
   // 1. Handle short contextual follow-ups ("Why", "Why?", "How", "Explain", "What if", "Really")
   if (

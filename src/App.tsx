@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { COURSES, FACULTIES, CourseItem } from './data/jambData';
+import { FreshersHubTab } from './components/FreshersHubTab';
 import { AdmissionCardCanvas } from './components/AdmissionCardCanvas';
 import { UniversityCutOffs } from './components/UniversityCutOffs';
 import { AggregateCalculator } from './components/AggregateCalculator';
@@ -17,7 +18,12 @@ import { CountdownWidget } from './components/CountdownWidget';
 import { ShareModal } from './components/ShareModal';
 import { InstallAppModal } from './components/InstallAppModal';
 import { usePWAInstall } from './hooks/usePWAInstall';
-import { safeOpenLink } from './utils/safeOpen';
+import { safeOpenLink, safeOpenAdLink } from './utils/safeOpen';
+import { trackAppVisit, trackAdClick } from './utils/analyticsTracker';
+import { initSavedAdScript } from './utils/adScriptInjector';
+import { AdBanner } from './components/AdBanner';
+import { InPagePushAd } from './components/InPagePushAd';
+import { NativeDisplayAd } from './components/NativeDisplayAd';
 import { auth, onAuthStateChanged, User } from './firebase';
 import {
   GraduationCap,
@@ -50,9 +56,9 @@ export default function App() {
   const { isInstallable, isInstalled, install } = usePWAInstall();
   const [isInstallModalOpen, setIsInstallModalOpen] = useState(false);
 
-  // 5 Clean Bottom Tabs: courses | practice | readhub | card | ai
-  const [activeTab, setActiveTab] = useState<'courses' | 'practice' | 'readhub' | 'card' | 'ai'>('courses');
-  const [courseSubView, setCourseSubView] = useState<'combos' | 'checker' | 'cutoffs' | 'aggregate' | 'schedule'>('combos');
+  // 5 Clean Bottom Tabs: freshers | courses | practice | readhub | ai (plus card sub-view)
+  const [activeTab, setActiveTab] = useState<'freshers' | 'courses' | 'practice' | 'readhub' | 'card' | 'ai'>('freshers');
+  const [courseSubView, setCourseSubView] = useState<'combos' | 'checker' | 'cutoffs' | 'aggregate' | 'card' | 'schedule'>('combos');
   const [userSelectedElectives, setUserSelectedElectives] = useState<string[]>(['Biology', 'Chemistry', 'Physics']);
   const [checkerFilter, setCheckerFilter] = useState<'all' | 'eligible' | 'disqualified'>('all');
 
@@ -69,10 +75,19 @@ export default function App() {
   // Firebase User
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
-  // Monetag Ad Link (Private / Hidden from regular students)
+  // Monetag & Multi-Platform Ad Links (Private / Hidden from regular students)
   const [monetagLink, setMonetagLink] = useState<string>(() => {
     return localStorage.getItem('naija_monetag_link') || DEFAULT_MONETAG_LINK;
   });
+  const [secondaryAdLink, setSecondaryAdLink] = useState<string>(() => {
+    return localStorage.getItem('naija_secondary_ad_link') || '';
+  });
+  const [adStrategy, setAdStrategy] = useState<'monetag_only' | 'alternating'>(() => {
+    return (localStorage.getItem('naija_ad_strategy') as any) || 'alternating';
+  });
+  const [lastPlatformRotated, setLastPlatformRotated] = useState<'monetag' | 'secondary'>('secondary');
+  const [dwellMinutes, setDwellMinutes] = useState<number>(0);
+
   const [adTriggerCount, setAdTriggerCount] = useState<number>(() => {
     const s = localStorage.getItem('naija_ad_count');
     return s ? Number(s) : 0;
@@ -85,6 +100,20 @@ export default function App() {
   const [selectedFaculty, setSelectedFaculty] = useState<string>('All Faculties');
   const [courseSearch, setCourseSearch] = useState<string>('');
 
+  const [bannersEnabled, setBannersEnabled] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('portal_banners_enabled') !== 'false';
+    } catch {
+      return true;
+    }
+  });
+
+  // Track real app visits on startup & initialize saved Monetag script tags
+  useEffect(() => {
+    trackAppVisit();
+    initSavedAdScript();
+  }, []);
+
   // Listen to Firebase Auth
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -93,23 +122,55 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
-  // Sync Monetag settings
+  // Sync Monetag and secondary ad network settings
   useEffect(() => {
     localStorage.setItem('naija_monetag_link', monetagLink);
   }, [monetagLink]);
 
   useEffect(() => {
+    localStorage.setItem('naija_secondary_ad_link', secondaryAdLink);
+  }, [secondaryAdLink]);
+
+  useEffect(() => {
+    localStorage.setItem('naija_ad_strategy', adStrategy);
+  }, [adStrategy]);
+
+  useEffect(() => {
     localStorage.setItem('naija_ad_count', adTriggerCount.toString());
   }, [adTriggerCount]);
 
-  const handleRecordAdTrigger = () => {
+  // Active study dwell timer (increments every minute and registers passive CPM impressions)
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setDwellMinutes((prev) => prev + 1);
+      // Increment passive CPM impressions as candidates study
+      setAdTriggerCount((prev) => prev + 1);
+    }, 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const handleRecordAdTrigger = (placement?: string) => {
     setAdTriggerCount((prev) => prev + 1);
+    if (placement) {
+      trackAdClick(placement);
+    }
   };
 
-  const handleTriggerDirectAd = () => {
-    if (monetagLink) {
-      safeOpenLink(monetagLink);
-      handleRecordAdTrigger();
+  const handleTriggerDirectAd = (placement: string = 'bulletin_scholarship') => {
+    let adTriggered = false;
+    if (secondaryAdLink && adStrategy === 'alternating') {
+      if (lastPlatformRotated === 'monetag') {
+        adTriggered = safeOpenAdLink(secondaryAdLink);
+        setLastPlatformRotated('secondary');
+      } else {
+        adTriggered = safeOpenAdLink(monetagLink);
+        setLastPlatformRotated('monetag');
+      }
+    } else if (monetagLink) {
+      adTriggered = safeOpenAdLink(monetagLink);
+    }
+    if (adTriggered) {
+      handleRecordAdTrigger(placement);
     }
   };
 
@@ -133,14 +194,14 @@ export default function App() {
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5 sm:gap-2">
                 <h1 className="font-black text-sm sm:text-base md:text-lg tracking-tight leading-none text-white truncate">
-                  NaijaCampus <span className="text-amber-400"><span className="hidden sm:inline">Admission </span>Portal</span>
+                  NaijaCampus <span className="text-amber-400">Freshers &amp; Admission Portal</span>
                 </h1>
                 <span className="text-[10px] bg-emerald-800 text-emerald-200 px-2 py-0.5 rounded font-mono hidden sm:inline shrink-0">
                   {sessionString}
                 </span>
               </div>
               <p className="text-[10px] sm:text-[11px] text-emerald-300 mt-0.5 truncate">
-                JAMB UTME &bull; WAEC &bull; Polytechnics &bull; Cut-Offs
+                100L Freshers Clearance &bull; FUMMSA &bull; All Nigerian Institutions
               </p>
             </div>
           </div>
@@ -184,7 +245,7 @@ export default function App() {
           BULLETIN
         </span>
         <button
-          onClick={handleTriggerDirectAd}
+          onClick={() => handleTriggerDirectAd('bulletin_scholarship')}
           className="text-emerald-900 font-bold underline hover:text-emerald-950 flex items-center gap-1 cursor-pointer"
         >
           <span>Tap here to check {currentYear}/{currentYear + 1} Tertiary Scholarship Grants</span>
@@ -192,8 +253,40 @@ export default function App() {
         </button>
       </div>
 
+      {/* Visual In-Page Leaderboard Sponsored Banner */}
+      {bannersEnabled && (
+        <AdBanner
+          placement="leaderboard"
+          monetagLink={monetagLink}
+          secondaryAdLink={secondaryAdLink}
+          adStrategy={adStrategy}
+          onAdTriggered={(placement) => {
+            handleRecordAdTrigger(placement);
+          }}
+        />
+      )}
+
       {/* Main Workspace */}
       <main className="max-w-5xl mx-auto w-full px-4 py-6 flex-1 space-y-6">
+        {/* ================= TAB 0: 100L FRESHERS & SCREENING HUB ================= */}
+        {activeTab === 'freshers' && (
+          <FreshersHubTab
+            monetagLink={monetagLink}
+            onAdTriggered={handleRecordAdTrigger}
+            onNavigateToChioma={(prompt) => {
+              if (prompt) {
+                try {
+                  sessionStorage.setItem('chioma_initial_query', prompt);
+                } catch {
+                  // ignore
+                }
+              }
+              setActiveTab('ai');
+              setCounselorSubTab('advisor');
+            }}
+          />
+        )}
+
         {/* ================= TAB 1: COURSES, COMBOS & CUT-OFFS ================= */}
         {activeTab === 'courses' && (
           <div className="space-y-6">
@@ -248,6 +341,18 @@ export default function App() {
               >
                 <Calculator className="w-3.5 h-3.5 text-amber-400" />
                 <span>Aggregate</span>
+              </button>
+
+              <button
+                onClick={() => setCourseSubView('card')}
+                className={`flex-1 py-2 px-2.5 rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap shrink-0 sm:shrink ${
+                  courseSubView === 'card'
+                    ? 'bg-emerald-950 text-white shadow-xs'
+                    : 'text-slate-700 hover:text-slate-900'
+                }`}
+              >
+                <Award className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Slip Card</span>
               </button>
 
               <button
@@ -429,7 +534,7 @@ export default function App() {
                         </p>
                       </div>
 
-                      <div className="pt-3 mt-3 border-t border-amber-200/80 flex gap-2">
+                      <div className="pt-3 mt-3 border-t border-amber-200/80 flex flex-col sm:flex-row gap-2">
                         <button
                           onClick={() => setActiveTab('readhub')}
                           className="flex-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm transition cursor-pointer"
@@ -444,9 +549,27 @@ export default function App() {
                           <Award className="w-4 h-4 text-amber-400" />
                           <span>Generate Slip &rarr;</span>
                         </button>
+                        <button
+                          onClick={() => handleTriggerDirectAd('download_syllabus')}
+                          className="flex-1 bg-emerald-950 hover:bg-emerald-900 text-amber-300 border border-amber-400/60 font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm transition cursor-pointer"
+                        >
+                          <Download className="w-4 h-4 text-amber-400" />
+                          <span>Download Syllabus &rarr;</span>
+                        </button>
                       </div>
                     </div>
                   </div>
+
+                  {/* In-Page Mid-Content Educational Sponsor Banner */}
+                  {bannersEnabled && (
+                    <AdBanner
+                      placement="mid_content"
+                      monetagLink={monetagLink}
+                      secondaryAdLink={secondaryAdLink}
+                      adStrategy={adStrategy}
+                      onAdTriggered={handleRecordAdTrigger}
+                    />
+                  )}
                 </div>
               </div>
             ) : courseSubView === 'checker' ? (
@@ -469,12 +592,21 @@ export default function App() {
                       </p>
                     </div>
 
-                    <button
-                      onClick={() => setUserSelectedElectives([])}
-                      className="text-xs font-bold text-slate-500 hover:text-slate-800 underline cursor-pointer"
-                    >
-                      Reset Selection
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleTriggerDirectAd('jamb_brochure')}
+                        className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs px-3 py-1.5 rounded-xl flex items-center gap-1 shadow-xs transition cursor-pointer"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        <span>Official JAMB Brochure</span>
+                      </button>
+                      <button
+                        onClick={() => setUserSelectedElectives([])}
+                        className="text-xs font-bold text-slate-500 hover:text-slate-800 underline cursor-pointer"
+                      >
+                        Reset
+                      </button>
+                    </div>
                   </div>
 
                   {/* 4 Selected Subjects Badges */}
@@ -867,6 +999,68 @@ export default function App() {
                 monetagLink={monetagLink}
                 onAdTriggered={handleRecordAdTrigger}
               />
+            ) : courseSubView === 'card' ? (
+              /* ================= ADMISSION CARD GENERATOR ================= */
+              <div className="space-y-6">
+                <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
+                  <h3 className="text-sm font-black text-slate-900 mb-3">
+                    Customize Your Admission Eligibility Slip
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        Candidate Full Name
+                      </label>
+                      <input
+                        type="text"
+                        value={candidateName}
+                        onChange={(e) => setCandidateName(e.target.value)}
+                        placeholder="e.g. Chinedu Okafor"
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-bold focus:outline-hidden focus:border-emerald-700"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        Your UTME Score (out of 400)
+                      </label>
+                      <input
+                        type="number"
+                        min={100}
+                        max={400}
+                        value={jambScore}
+                        onChange={(e) => setJambScore(Number(e.target.value))}
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-bold font-mono focus:outline-hidden focus:border-emerald-700"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        Selected Course
+                      </label>
+                      <select
+                        value={selectedCourseId}
+                        onChange={(e) => setSelectedCourseId(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-bold focus:outline-hidden focus:border-emerald-700"
+                      >
+                        {COURSES.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <AdmissionCardCanvas
+                  candidateName={candidateName}
+                  course={selectedCourse}
+                  jambScore={jambScore}
+                  monetagLink={monetagLink}
+                  onAdTriggered={handleRecordAdTrigger}
+                />
+              </div>
             ) : (
               /* ================= SCHOOL CUT-OFFS DIRECTORY ================= */
               <UniversityCutOffs
@@ -882,6 +1076,9 @@ export default function App() {
         {activeTab === 'practice' && (
           <CbtPracticeTab
             monetagLink={monetagLink}
+            secondaryAdLink={secondaryAdLink}
+            adStrategy={adStrategy}
+            bannersEnabled={bannersEnabled}
             onAdTriggered={handleRecordAdTrigger}
           />
         )}
@@ -1004,17 +1201,50 @@ export default function App() {
                 currentUser={currentUser}
                 monetagLink={monetagLink}
                 onSaveMonetagLink={(newLink) => setMonetagLink(newLink)}
+                secondaryAdLink={secondaryAdLink}
+                onSaveSecondaryAdLink={(newLink) => setSecondaryAdLink(newLink)}
+                adStrategy={adStrategy}
+                onSaveAdStrategy={(strat) => setAdStrategy(strat)}
                 triggerCount={adTriggerCount}
+                dwellMinutes={dwellMinutes}
                 onOpenInstallModal={() => setIsInstallModalOpen(true)}
+                bannersEnabled={bannersEnabled}
+                onToggleBanners={(enabled) => {
+                  setBannersEnabled(enabled);
+                  localStorage.setItem('portal_banners_enabled', enabled ? 'true' : 'false');
+                }}
               />
             )}
           </div>
         )}
       </main>
 
+      {/* Sticky Floating Bottom Sponsored Mini-Banner */}
+      {bannersEnabled && (
+        <AdBanner
+          placement="floating_bottom"
+          monetagLink={monetagLink}
+          secondaryAdLink={secondaryAdLink}
+          adStrategy={adStrategy}
+          onAdTriggered={(placement) => {
+            handleRecordAdTrigger(placement);
+          }}
+        />
+      )}
+
       {/* FIXED BOTTOM NAVIGATION BAR (5 CLEAN TABS) */}
       <nav className="fixed bottom-0 inset-x-0 bg-white border-t border-slate-200 z-50 shadow-lg">
         <div className="max-w-md mx-auto grid grid-cols-5 h-16 px-1">
+          <button
+            onClick={() => setActiveTab('freshers')}
+            className={`flex flex-col items-center justify-center gap-1 transition cursor-pointer py-1 ${
+              activeTab === 'freshers' ? 'text-emerald-950 font-black' : 'text-slate-400 hover:text-slate-600 font-semibold'
+            }`}
+          >
+            <GraduationCap className={`w-5 h-5 ${activeTab === 'freshers' ? 'text-emerald-900 stroke-[2.5]' : 'text-slate-400'}`} />
+            <span className="text-[9px] sm:text-[10px] leading-none tracking-tight truncate max-w-full px-0.5">Freshers Hub</span>
+          </button>
+
           <button
             onClick={() => setActiveTab('courses')}
             className={`flex flex-col items-center justify-center gap-1 transition cursor-pointer py-1 ${
@@ -1032,7 +1262,7 @@ export default function App() {
             }`}
           >
             <CheckSquare className={`w-5 h-5 ${activeTab === 'practice' ? 'text-emerald-800 stroke-[2.5]' : 'text-slate-400'}`} />
-            <span className="text-[9px] sm:text-[10px] leading-none tracking-tight truncate max-w-full px-0.5">CBT Practice</span>
+            <span className="text-[9px] sm:text-[10px] leading-none tracking-tight truncate max-w-full px-0.5">Practice</span>
           </button>
 
           <button
@@ -1046,23 +1276,13 @@ export default function App() {
           </button>
 
           <button
-            onClick={() => setActiveTab('card')}
-            className={`flex flex-col items-center justify-center gap-1 transition cursor-pointer py-1 ${
-              activeTab === 'card' ? 'text-emerald-950 font-black' : 'text-slate-400 hover:text-slate-600 font-semibold'
-            }`}
-          >
-            <Award className={`w-5 h-5 ${activeTab === 'card' ? 'text-emerald-900 stroke-[2.5]' : 'text-slate-400'}`} />
-            <span className="text-[9px] sm:text-[10px] leading-none tracking-tight truncate max-w-full px-0.5">Slip Card</span>
-          </button>
-
-          <button
             onClick={() => setActiveTab('ai')}
             className={`flex flex-col items-center justify-center gap-1 transition cursor-pointer py-1 ${
               activeTab === 'ai' ? 'text-emerald-950 font-black' : 'text-slate-400 hover:text-slate-600 font-semibold'
             }`}
           >
-            <GraduationCap className={`w-5 h-5 ${activeTab === 'ai' ? 'text-emerald-900 stroke-[2.5]' : 'text-slate-400'}`} />
-            <span className="text-[9px] sm:text-[10px] leading-none tracking-tight truncate max-w-full px-0.5">Admissions</span>
+            <UserIcon className={`w-5 h-5 ${activeTab === 'ai' ? 'text-emerald-900 stroke-[2.5]' : 'text-slate-400'}`} />
+            <span className="text-[9px] sm:text-[10px] leading-none tracking-tight truncate max-w-full px-0.5">Advisor &amp; PIN</span>
           </button>
         </div>
       </nav>
@@ -1079,6 +1299,16 @@ export default function App() {
         isOpen={isInstallModalOpen}
         onClose={() => setIsInstallModalOpen(false)}
       />
+
+      {/* Real In-App Floating Push Ad Notification (Monetag IPP style) */}
+      {bannersEnabled && (
+        <InPagePushAd
+          monetagLink={monetagLink}
+          secondaryAdLink={secondaryAdLink}
+          adStrategy={adStrategy}
+          onAdTriggered={handleRecordAdTrigger}
+        />
+      )}
     </div>
   );
 }

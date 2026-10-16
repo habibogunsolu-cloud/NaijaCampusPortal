@@ -82,7 +82,7 @@ export default async function handler(req: any, res: any) {
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      return res.status(200).json({ reply: getSmartReply(message) });
+      return res.status(200).json({ reply: getSmartReply(message, history) });
     }
 
     const ai = new GoogleGenAI({ apiKey });
@@ -97,32 +97,54 @@ CRITICAL INSTRUCTIONS:
    - Maintain a friendly, supportive Nigerian sisterly mentor tone ("scholar", "my friend").
 Keep responses concise, clear, and easy to read on mobile.`;
 
-    const contents = [
-      ...(history || []).slice(-6).map((h: { role: string; content: string }) => ({
-        role: h.role === 'user' ? 'user' : 'model',
-        parts: [{ text: h.content }],
-      })),
-      {
-        role: 'user',
-        parts: [{ text: message }],
-      },
-    ];
+    // Ensure contents starts with user and strictly alternates
+    const validHistory: { role: 'user' | 'model'; parts: { text: string }[] }[] = [];
+    let currentExpectedRole: 'user' | 'model' = 'user';
+
+    const rawHistory = Array.isArray(history) ? history : [];
+    for (const item of rawHistory) {
+      if (!item || typeof item.content !== 'string' || !item.content.trim()) continue;
+      const itemRole = item.role === 'model' ? 'model' : 'user';
+
+      if (validHistory.length === 0) {
+        if (itemRole === 'user') {
+          validHistory.push({ role: 'user', parts: [{ text: item.content.trim() }] });
+          currentExpectedRole = 'model';
+        }
+      } else {
+        if (itemRole === currentExpectedRole) {
+          validHistory.push({ role: itemRole, parts: [{ text: item.content.trim() }] });
+          currentExpectedRole = currentExpectedRole === 'user' ? 'model' : 'user';
+        } else {
+          const last = validHistory[validHistory.length - 1];
+          last.parts[0].text += `\n${item.content.trim()}`;
+        }
+      }
+    }
+
+    if (validHistory.length > 0 && validHistory[validHistory.length - 1].role === 'user') {
+      validHistory[validHistory.length - 1].parts[0].text += `\n${message.trim()}`;
+    } else {
+      validHistory.push({ role: 'user', parts: [{ text: message.trim() }] });
+    }
 
     const timeoutPromise = new Promise<{ text?: string }>((_, reject) =>
       setTimeout(() => reject(new Error('TIMEOUT')), 8000)
     );
 
-    const apiPromise = ai.models.generateContent({
-      model: 'gemini-3.8-flash',
-      contents,
-      config: {
-        systemInstruction,
-        temperature: 0.6,
-      },
-    });
+    const apiPromise = ai.models
+      .generateContent({
+        model: 'gemini-3.8-flash',
+        contents: validHistory,
+        config: {
+          systemInstruction,
+          temperature: 0.6,
+        },
+      })
+      .catch(() => ({ text: '' }));
 
     const response = (await Promise.race([apiPromise, timeoutPromise])) as { text?: string };
-    const reply = response.text || getSmartReply(message, history);
+    const reply = response.text?.trim() || getSmartReply(message, history);
     return res.status(200).json({ reply });
   } catch {
     const message = req.body?.message || '';

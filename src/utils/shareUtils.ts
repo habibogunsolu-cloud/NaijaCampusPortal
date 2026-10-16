@@ -31,6 +31,21 @@ export function getSafeShareUrl(): string {
   return PUBLIC_SHARE_URL;
 }
 
+export function buildFreshersShareMessage(schoolName?: string): string {
+  const url = getSafeShareUrl();
+  const schoolLabel = schoolName || 'FUMMSA Abeokuta & Nigerian Tertiary Institutions';
+  return (
+    `🎓 *100 LEVEL FRESHERS & CLEARANCE PORTAL*\n` +
+    `_Official Screening Checklist • 100L CGPA Calculator • Resumption Guide_\n\n` +
+    `Congratulations to all newly admitted students (${schoolLabel})! Prepare everything for your clearance:\n\n` +
+    `✅ *Screening Checklist:* Original JAMB colored admission letter, scratch cards, medical fitness cert, NPC age declaration & attestation papers\n` +
+    `✅ *100L CGPA Calculator:* Plan your 5.0 first semester target to secure First Class / MBBS safe standing\n` +
+    `✅ *CAPS & Acceptance Fee Guide:* Step-by-step portal registration & file packaging\n` +
+    `✅ *Counselor Chioma:* Ask any clearance question anytime\n\n` +
+    `📲 *Open the Portal Free Here:*\n${url}`
+  );
+}
+
 export function buildGeneralPortalShareMessage(): string {
   const url = getSafeShareUrl();
   return (

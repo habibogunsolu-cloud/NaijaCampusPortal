@@ -45,14 +45,14 @@ const INITIAL_MESSAGES: ChatMessage[] = [
     id: 'm1',
     sender: 'counselor',
     text:
-      "Hello scholar! I am Counselor Chioma, your Senior Admissions Advisor for the 2026/2027 academic session.\n\n" +
-      "I provide verified guidance on:\n" +
-      "• Official JAMB 4-Subject Combinations (preventing disqualification)\n" +
-      "• WAEC/NECO 9-Subject Requirements & One-Sitting vs Two-Sittings Rules\n" +
-      "• Real University & Polytechnic Cut-Off Benchmarks (Federal, State, Private)\n" +
-      "• Low Score Remedies (140 - 199 Points) & Change of Institution Strategies\n" +
-      "• Catchment Area Quotas & Direct Entry (DE) Pathways\n\n" +
-      "What course, score, or institution are you targeting?",
+      "Hello scholar! I am Counselor Chioma, your Admissions & Freshers Academic Advisor.\n\n" +
+      "I provide guidance on:\n" +
+      "• 100L Freshers Physical Screening & Clearance Checklist\n" +
+      "• FUMMSA Abeokuta & Nigerian Universities Resumption\n" +
+      "• JAMB CAPS Acceptance & Original Admission Letter Printing\n" +
+      "• 100L CGPA 5.0 Calculation & First Class Strategy\n" +
+      "• Official Subject Combinations & Cut-Off Marks\n\n" +
+      "What university, clearance document, or course can I help you with today?",
     timestamp: 'Just now',
   },
 ];
@@ -64,6 +64,16 @@ interface QuickPromptCategory {
 }
 
 const CATEGORIZED_PROMPTS: QuickPromptCategory[] = [
+  {
+    label: '100L & Clearance',
+    icon: '🎓',
+    prompts: [
+      'What are the official clearance documents and requirements for FUMMSA Abeokuta?',
+      'What documents must I carry to campus for physical screening?',
+      'How do I calculate 100L CGPA on 5.0 scale to stay in First Class?',
+      'How do I accept admission on JAMB CAPS and pay university acceptance fee?',
+    ],
+  },
   {
     label: 'Popular Courses',
     icon: '🎯',
@@ -118,7 +128,18 @@ export const AiCounselor: React.FC<AiCounselorProps> = ({
     }
     return INITIAL_MESSAGES;
   });
-  const [inputMessage, setInputMessage] = useState('');
+  const [inputMessage, setInputMessage] = useState(() => {
+    try {
+      const pre = sessionStorage.getItem('chioma_initial_query');
+      if (pre) {
+        sessionStorage.removeItem('chioma_initial_query');
+        return pre;
+      }
+    } catch {
+      // ignore
+    }
+    return '';
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [activeCategoryIdx, setActiveCategoryIdx] = useState(0);
@@ -274,6 +295,7 @@ export const AiCounselor: React.FC<AiCounselorProps> = ({
       return;
     }
 
+    let replyText = '';
     try {
       const response = await fetch('/api/counselor', {
         method: 'POST',
@@ -284,42 +306,28 @@ export const AiCounselor: React.FC<AiCounselorProps> = ({
         }),
       });
 
-      if (!response.ok) {
-        throw new Error(`Server returned ${response.status}`);
+      if (response.ok) {
+        const data = await response.json();
+        replyText = data.reply || '';
       }
-
-      const data = await response.json();
-      const replyText =
-        data.reply ||
-        generateSmartCounselorReply(queryText, historyItems);
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: (Date.now() + 1).toString(),
-          sender: 'counselor',
-          text: replyText,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        },
-      ]);
     } catch {
-      // Offline / Network fallback with full contextual understanding
-      const smartReply =
-        "📡 **Offline Notice:** You appear to be offline or server network is unreachable. Here is Counselor Chioma's verified offline guidance:\n\n" +
-        generateSmartCounselorReply(queryText, historyItems);
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: (Date.now() + 1).toString(),
-          sender: 'counselor',
-          text: smartReply,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        },
-      ]);
-    } finally {
-      setIsLoading(false);
+      // Network or server unreachable - silent graceful fallback
     }
+
+    if (!replyText) {
+      replyText = generateSmartCounselorReply(queryText, historyItems);
+    }
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: (Date.now() + 1).toString(),
+        sender: 'counselor',
+        text: replyText,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      },
+    ]);
+    setIsLoading(false);
   };
 
   const handleCopyText = async (text: string, id: string) => {
@@ -459,6 +467,25 @@ export const AiCounselor: React.FC<AiCounselorProps> = ({
             <span>Polytechnic ND/HND to 200L DE</span>
           </span>
         </div>
+      </div>
+
+      {/* High-Earning Official Resource Banner */}
+      <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 flex items-center justify-between gap-2 shrink-0">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <span className="bg-amber-200 text-amber-950 text-[10px] font-black px-1.5 py-0.5 rounded font-mono shrink-0">
+            OFFICIAL
+          </span>
+          <span className="text-xs text-amber-950 font-bold truncate">
+            Check 2026 JAMB CAPS Admission Status &amp; University Cut-Off Guide
+          </span>
+        </div>
+        <button
+          onClick={handleOpenAdPortal}
+          className="bg-emerald-950 hover:bg-emerald-900 text-amber-400 font-black text-[11px] px-2.5 py-1 rounded-lg flex items-center gap-1 shrink-0 transition cursor-pointer shadow-xs"
+        >
+          <span>Verify CAPS</span>
+          <ExternalLink className="w-3 h-3" />
+        </button>
       </div>
 
       {/* ================= CATEGORIZED QUICK PROMPT CHIPS ================= */}

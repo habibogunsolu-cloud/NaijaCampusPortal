@@ -20,30 +20,44 @@ import {
   ExternalLink,
   ShieldCheck,
   Zap,
+  Download,
 } from 'lucide-react';
 import {
   CBT_SUBJECTS_LIST,
   CBT_QUESTIONS_BANK,
   CBT_EXAM_YEARS,
+  CBT_EXAM_BODIES,
   CbtQuestion,
   getQuestionsForSubject,
   calculateExamResults,
 } from '../data/cbtExamData';
 import { openWhatsAppShare, getSafeShareUrl } from '../utils/shareUtils';
+import { safeOpenLink, safeOpenAdLink } from '../utils/safeOpen';
+import { trackAdClick } from '../utils/analyticsTracker';
+import { AdBanner } from './AdBanner';
 
 interface CbtPracticeTabProps {
   monetagLink?: string;
-  onAdTriggered?: () => void;
+  secondaryAdLink?: string;
+  adStrategy?: 'monetag_only' | 'alternating';
+  bannersEnabled?: boolean;
+  onAdTriggered?: (placement?: string) => void;
 }
 
 export const CbtPracticeTab: React.FC<CbtPracticeTabProps> = ({
   monetagLink,
+  secondaryAdLink,
+  adStrategy = 'alternating',
+  bannersEnabled = true,
   onAdTriggered,
 }) => {
   // Practice Sub-Mode: 'mock' (Full 4-Subject 2-Hour CBT) or 'drill' (Quick 1-Subject topical practice)
   const [examMode, setExamMode] = useState<'mock' | 'drill'>('mock');
 
-  // Selected Exam Year Filter
+  // Selected Examination Body (JAMB UTME, WAEC SSCE, NECO SSCE, Post-UTME, All Exams)
+  const [selectedExamBody, setSelectedExamBody] = useState<string>('All Exams');
+
+  // Selected Exam Year Filter (2020 through 2026)
   const [selectedYear, setSelectedYear] = useState<string>('All Years');
 
   // Candidate Registration setup for 4-Subject Mock
@@ -99,7 +113,7 @@ export const CbtPracticeTab: React.FC<CbtPracticeTabProps> = ({
 
   // Current Subject and Questions
   const activeSubjectName = selectedSubjects[currentSubjectIdx] || 'English';
-  const currentSubjectQuestions = getQuestionsForSubject(activeSubjectName, selectedYear);
+  const currentSubjectQuestions = getQuestionsForSubject(activeSubjectName, selectedYear, selectedExamBody);
   const activeQuestion: CbtQuestion | undefined = currentSubjectQuestions[currentQuestionIdx];
 
   // 120-Minute Countdown Clock for Mock Exam
@@ -191,14 +205,14 @@ export const CbtPracticeTab: React.FC<CbtPracticeTabProps> = ({
     } else if (currentSubjectIdx > 0) {
       setCurrentSubjectIdx((prev) => prev - 1);
       const prevSubj = selectedSubjects[currentSubjectIdx - 1];
-      const prevQuestions = getQuestionsForSubject(prevSubj, selectedYear);
+      const prevQuestions = getQuestionsForSubject(prevSubj, selectedYear, selectedExamBody);
       setCurrentQuestionIdx(Math.max(0, prevQuestions.length - 1));
     }
   };
 
   // Exam Submission Handler
   const handleFinalSubmit = () => {
-    const results = calculateExamResults(selectedSubjects, answers, selectedYear);
+    const results = calculateExamResults(selectedSubjects, answers, selectedYear, selectedExamBody);
     setExamResults(results);
     setIsExamSubmitted(true);
     setShowSubmitConfirmModal(false);
@@ -211,6 +225,8 @@ export const CbtPracticeTab: React.FC<CbtPracticeTabProps> = ({
         score: results.totalScore,
         subjects: selectedSubjects,
         tier: results.performanceTier,
+        examBody: selectedExamBody,
+        year: selectedYear,
       });
       localStorage.setItem('jamb_cbt_attempts', JSON.stringify(history.slice(0, 10)));
     } catch {
@@ -242,7 +258,7 @@ export const CbtPracticeTab: React.FC<CbtPracticeTabProps> = ({
   }, 0);
 
   const totalQuestionsAcrossExam = selectedSubjects.reduce((acc, subj) => {
-    return acc + getQuestionsForSubject(subj, selectedYear).length;
+    return acc + getQuestionsForSubject(subj, selectedYear, selectedExamBody).length;
   }, 0);
 
   // Timer Color Indicator based on urgency
@@ -276,9 +292,9 @@ export const CbtPracticeTab: React.FC<CbtPracticeTabProps> = ({
     if (!examResults) return;
     const publicUrl = getSafeShareUrl();
     const message =
-      `🇳🇬 *JAMB UTME CBT MOCK PERFORMANCE SLIP*\n` +
-      `_Official Score Report for ${mockRegNumber}_\n\n` +
-      `🎯 *AGGREGATE UTME SCORE: ${examResults.totalScore} / 400*\n` +
+      `🇳🇬 *${selectedExamBody.toUpperCase()} CBT MOCK PERFORMANCE SLIP*\n` +
+      `_Official Score Report for ${mockRegNumber} (${selectedYear})_\n\n` +
+      `🎯 *AGGREGATE SCORE: ${examResults.totalScore} / 400*\n` +
       `📊 *Status:* ${examResults.performanceTier}\n\n` +
       `📋 *SUBJECT BREAKDOWN:*\n` +
       examResults.subjectScores
@@ -286,7 +302,7 @@ export const CbtPracticeTab: React.FC<CbtPracticeTabProps> = ({
         .join('\n') +
       `\n\n` +
       `💡 *Admissions Rating:*\n${examResults.advice}\n\n` +
-      `🔗 *Practice authentic JAMB CBT past questions free here:*\n${publicUrl}`;
+      `🔗 *Practice authentic ${selectedExamBody} past questions (2020-2026) free here:*\n${publicUrl}`;
 
     openWhatsAppShare(message);
   };
@@ -305,7 +321,7 @@ export const CbtPracticeTab: React.FC<CbtPracticeTabProps> = ({
             }`}
           >
             <Award className="w-3.5 h-3.5 text-amber-400" />
-            <span>Full 4-Subject JAMB Mock (120 Mins)</span>
+            <span>Full 4-Subject Mock (120 Mins)</span>
           </button>
           <button
             onClick={() => setExamMode('drill')}
@@ -327,7 +343,7 @@ export const CbtPracticeTab: React.FC<CbtPracticeTabProps> = ({
       </div>
 
       {/* ============================================================== */}
-      {/* MODE 1: OFFICIAL 4-SUBJECT JAMB UTME CBT MOCK EXAM            */}
+      {/* MODE 1: OFFICIAL 4-SUBJECT CBT MOCK EXAM                      */}
       {/* ============================================================== */}
       {examMode === 'mock' && (
         <div className="space-y-6">
@@ -337,10 +353,10 @@ export const CbtPracticeTab: React.FC<CbtPracticeTabProps> = ({
               <div className="border-b border-slate-100 pb-4">
                 <div className="flex items-center gap-2 text-emerald-950 font-black text-lg">
                   <ShieldCheck className="w-6 h-6 text-emerald-700" />
-                  <h2>JAMB UTME CBT Mock Examination Hall</h2>
+                  <h2>JAMB UTME &amp; WAEC/NECO Examination Hall</h2>
                 </div>
                 <p className="text-xs text-slate-600 mt-1">
-                  Experience the exact layout, timing, question jumper palette, and marking scheme used in accredited JAMB CBT centers across Nigeria.
+                  Authentic past questions from 2020 through 2026 across JAMB UTME, WAEC SSCE, NECO SSCE, and Post-UTME with official timing and real marking schemes.
                 </p>
               </div>
 
@@ -348,7 +364,7 @@ export const CbtPracticeTab: React.FC<CbtPracticeTabProps> = ({
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                    Step 1: Confirm Your 4 Registered UTME Subjects:
+                    Step 1: Confirm Your 4 Examination Subjects:
                   </label>
                   <span className="text-xs font-bold font-mono text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
                     {selectedSubjects.length} of 4 Subjects Selected
@@ -401,14 +417,46 @@ export const CbtPracticeTab: React.FC<CbtPracticeTabProps> = ({
                 </div>
               </div>
 
-              {/* Step 2: Select UTME Exam Year */}
+              {/* Step 2: Select Examination Body (JAMB, WAEC, NECO, Post-UTME) */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                    Step 2: Choose Past Questions Year (Filter Questions by Year):
+                    Step 2: Choose Examination Body:
                   </label>
                   <span className="text-xs font-bold font-mono text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                    Active: {selectedYear}
+                    Exam: {selectedExamBody}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                  {CBT_EXAM_BODIES.map((body) => (
+                    <button
+                      key={body}
+                      type="button"
+                      onClick={() => setSelectedExamBody(body)}
+                      className={`px-3 py-2.5 rounded-xl text-xs font-bold border transition cursor-pointer flex flex-col items-center justify-center text-center gap-1 ${
+                        selectedExamBody === body
+                          ? 'bg-emerald-950 text-white border-emerald-900 shadow-sm'
+                          : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      <span>
+                        {body === 'JAMB UTME' ? '🎓' : body === 'WAEC SSCE' ? '📜' : body === 'NECO SSCE' ? '🏛️' : body === 'Post-UTME' ? '🏫' : '🌟'}
+                      </span>
+                      <span className="text-[11px] leading-tight">{body}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Step 3: Select Exam Year (2020 through 2026) */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                    Step 3: Choose Past Question Year (2020 – 2026):
+                  </label>
+                  <span className="text-xs font-bold font-mono text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                    Year: {selectedYear}
                   </span>
                 </div>
 
@@ -424,13 +472,19 @@ export const CbtPracticeTab: React.FC<CbtPracticeTabProps> = ({
                           : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
                       }`}
                     >
-                      <span>{yr === 'All Years' ? '🌟 All Years (Mixed UTME Questions)' : `🗓️ ${yr} Past Questions`}</span>
+                      <span>
+                        {yr === 'All Years'
+                          ? '🌟 All Years Combined'
+                          : yr === '2026'
+                          ? '🔥 2026 Mock & Specimen'
+                          : `🗓️ ${yr} Past Questions`}
+                      </span>
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Step 3: Exam Rules Overview */}
+              {/* Step 4: Exam Rules Overview */}
               <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                 <div className="flex items-start gap-2.5">
                   <Clock className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
@@ -456,6 +510,17 @@ export const CbtPracticeTab: React.FC<CbtPracticeTabProps> = ({
                   </div>
                 </div>
               </div>
+
+              {/* In-App Direct CBT Hall Sponsored Partner Ad */}
+              {bannersEnabled && (
+                <AdBanner
+                  placement="cbt_hall"
+                  monetagLink={monetagLink}
+                  secondaryAdLink={secondaryAdLink}
+                  adStrategy={adStrategy}
+                  onAdTriggered={onAdTriggered}
+                />
+              )}
 
               {/* Launch Exam Button */}
               <div className="pt-2">
@@ -514,8 +579,10 @@ export const CbtPracticeTab: React.FC<CbtPracticeTabProps> = ({
 
                 {/* Countdown Clock & Submit Button */}
                 <div className="flex items-center justify-between sm:justify-end gap-2.5 shrink-0">
-                  <span className="hidden sm:inline-flex text-[10px] font-mono font-bold bg-emerald-900/90 text-amber-300 px-2.5 py-1 rounded-lg border border-emerald-700/60">
-                    {selectedYear}
+                  <span className="hidden sm:inline-flex text-[10px] font-mono font-bold bg-emerald-900/90 text-amber-300 px-2.5 py-1 rounded-lg border border-emerald-700/60 items-center gap-1.5">
+                    <span>{selectedExamBody}</span>
+                    <span>&bull;</span>
+                    <span>{selectedYear}</span>
                   </span>
                   <div className={`px-3 py-1 rounded-xl text-xs flex items-center gap-1.5 transition-all ${getTimerColorClass()}`}>
                     <Clock className="w-3.5 h-3.5" />
@@ -763,8 +830,61 @@ export const CbtPracticeTab: React.FC<CbtPracticeTabProps> = ({
                   </div>
                 </div>
 
-                {/* Slip Action Buttons: Share, Review Answers, Retake */}
+                {/* In-App Direct CBT Hall Sponsored Partner Ad */}
+                {bannersEnabled && (
+                  <AdBanner
+                    placement="cbt_hall"
+                    monetagLink={monetagLink}
+                    secondaryAdLink={secondaryAdLink}
+                    adStrategy={adStrategy}
+                    onAdTriggered={onAdTriggered}
+                  />
+                )}
+
+                {/* High-Earning Student Action Cards (PDF Slip Download & 2024 Past Questions) */}
+                <div className="bg-gradient-to-br from-amber-50 to-amber-100/60 border-2 border-amber-300 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs">
+                  <div className="space-y-1 text-center sm:text-left">
+                    <div className="flex items-center justify-center sm:justify-start gap-2">
+                      <span className="bg-amber-500 text-slate-950 font-black text-[10px] px-2 py-0.5 rounded uppercase font-mono">
+                        OFFICIAL CAPS REPORT
+                      </span>
+                      <span className="text-xs font-black text-amber-950">2026/2027 JAMB Eligibility Verification</span>
+                    </div>
+                    <p className="text-xs text-amber-900 leading-snug">
+                      Download your official printable Mock Result Certificate &amp; University Screening Cut-Off Profile (PDF).
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      if (onAdTriggered) onAdTriggered();
+                      if (monetagLink) {
+                        safeOpenAdLink(monetagLink);
+                        trackAdClick('cbt_result_pdf');
+                      }
+                    }}
+                    className="w-full sm:w-auto bg-emerald-950 hover:bg-emerald-900 text-amber-300 border border-amber-400 font-black text-xs px-5 py-3 rounded-xl flex items-center justify-center gap-2 shadow-md transition cursor-pointer shrink-0"
+                  >
+                    <Download className="w-4 h-4 text-amber-400" />
+                    <span>Download Result Certificate (PDF)</span>
+                  </button>
+                </div>
+
+                {/* Slip Action Buttons: Share, Review Answers, Retake & Unlock 2024 */}
                 <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
+                  <button
+                    onClick={() => {
+                      if (onAdTriggered) onAdTriggered();
+                      if (monetagLink) {
+                        safeOpenAdLink(monetagLink);
+                        trackAdClick('cbt_past_questions');
+                      }
+                    }}
+                    className="w-full sm:flex-1 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black py-3 px-4 rounded-xl text-xs flex items-center justify-center gap-2 shadow-xs transition cursor-pointer"
+                  >
+                    <Zap className="w-4 h-4 fill-slate-950" />
+                    <span>Unlock 2024 Past Questions &amp; Traps</span>
+                  </button>
+
                   <button
                     onClick={handleShareResultSlip}
                     className="w-full sm:flex-1 bg-[#25D366] hover:bg-[#20bd5a] text-slate-950 font-black py-3 px-4 rounded-xl text-xs flex items-center justify-center gap-2 shadow-xs transition cursor-pointer"
@@ -823,7 +943,7 @@ export const CbtPracticeTab: React.FC<CbtPracticeTabProps> = ({
                     {/* Review Active Question */}
                     {(() => {
                       const revSubj = selectedSubjects[reviewSubjectIdx];
-                      const revQuestions = getQuestionsForSubject(revSubj, selectedYear);
+                      const revQuestions = getQuestionsForSubject(revSubj, selectedYear, selectedExamBody);
                       const revQ = revQuestions[reviewQuestionIdx];
                       const userPick = answers[revSubj]?.[revQ?.id];
                       const isCorrect = userPick === revQ?.correct;
@@ -963,6 +1083,41 @@ export const CbtPracticeTab: React.FC<CbtPracticeTabProps> = ({
             </div>
           </div>
 
+          {/* Examination Body Filter Bar for Drill */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                Select Examination Body:
+              </label>
+              <span className="text-[11px] font-mono font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                Exam: {selectedExamBody}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+              {CBT_EXAM_BODIES.map((body) => (
+                <button
+                  key={body}
+                  onClick={() => {
+                    setSelectedExamBody(body);
+                    setDrillQuestionIdx(0);
+                    setDrillSelectedAnswer(null);
+                    setDrillIsAnswerRevealed(false);
+                  }}
+                  className={`px-3 py-1 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
+                    selectedExamBody === body
+                      ? 'bg-emerald-950 text-white shadow-xs'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  }`}
+                >
+                  <span>
+                    {body === 'JAMB UTME' ? '🎓' : body === 'WAEC SSCE' ? '📜' : body === 'NECO SSCE' ? '🏛️' : body === 'Post-UTME' ? '🏫' : '🌟'}
+                  </span>
+                  <span>{body}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Year Filter Bar for Drill */}
           <div>
             <div className="flex items-center justify-between mb-2">
@@ -989,7 +1144,9 @@ export const CbtPracticeTab: React.FC<CbtPracticeTabProps> = ({
                       : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                   }`}
                 >
-                  {yr === 'All Years' ? '🌟 All Years' : `🗓️ ${yr} Questions`}
+                  <span>
+                    {yr === 'All Years' ? '🌟 All Years' : yr === '2026' ? '🔥 2026 Mock' : `🗓️ ${yr} Questions`}
+                  </span>
                 </button>
               ))}
             </div>
@@ -997,7 +1154,7 @@ export const CbtPracticeTab: React.FC<CbtPracticeTabProps> = ({
 
           {/* Drill Active Question Card */}
           {(() => {
-            const drillQuestions = getQuestionsForSubject(drillSubject, selectedYear);
+            const drillQuestions = getQuestionsForSubject(drillSubject, selectedYear, selectedExamBody);
             const q = drillQuestions[drillQuestionIdx];
 
             if (!q) {
