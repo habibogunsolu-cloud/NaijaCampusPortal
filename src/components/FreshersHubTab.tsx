@@ -154,9 +154,9 @@ export const FreshersHubTab: React.FC<FreshersHubTabProps> = ({
   onAdTriggered,
   onNavigateToChioma,
 }) => {
-  // Selected School & Faculty
-  const [selectedSchool, setSelectedSchool] = useState<string>('fummsa');
-  const [selectedFaculty, setSelectedFaculty] = useState<string>('medicine');
+  // Selected School & Faculty (Default: All Nigerian Institutions for universal applicability)
+  const [selectedSchool, setSelectedSchool] = useState<string>('all_nigerian');
+  const [selectedFaculty, setSelectedFaculty] = useState<string>('all_faculties');
 
   // Checklist state stored in localStorage
   const [checkedDocIds, setCheckedDocIds] = useState<string[]>(() => {
@@ -235,7 +235,7 @@ export const FreshersHubTab: React.FC<FreshersHubTabProps> = ({
 
     const text =
       `📋 *MY 100 LEVEL PHYSICAL SCREENING CHECKLIST* 🎓\n` +
-      `Institution: ${selectedSchool === 'fummsa' ? 'FUMMSA Abeokuta' : 'Nigerian Tertiary Institution'}\n` +
+      `Institution: ${selectedSchool === 'all_nigerian' ? 'All Nigerian Tertiary Institutions' : selectedSchool.toUpperCase()}\n` +
       `Progress: ${checkedDocIds.length}/${DEFAULT_CLEARANCE_DOCS.length} Documents Ready (${progressPercent}%)\n\n` +
       `✅ *READY DOCUMENTS (${completed.length}):*\n` +
       completed.map((d) => `• ${d.title}`).join('\n') +
@@ -300,7 +300,7 @@ export const FreshersHubTab: React.FC<FreshersHubTabProps> = ({
             <button
               onClick={() => {
                 if (onNavigateToChioma) {
-                  onNavigateToChioma('What are the official clearance documents and requirements for FUMMSA Abeokuta?');
+                  onNavigateToChioma('What are the compulsory screening clearance documents and steps for 100L university & polytechnic admission?');
                 }
               }}
               className="bg-amber-400 hover:bg-amber-300 text-emerald-950 font-black px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm transition cursor-pointer"
@@ -329,7 +329,7 @@ export const FreshersHubTab: React.FC<FreshersHubTabProps> = ({
               onChange={(e) => setSelectedSchool(e.target.value)}
               className="w-full bg-emerald-900/90 border border-emerald-700 text-white text-xs font-semibold rounded-xl px-3 py-2 focus:outline-hidden focus:border-amber-400 cursor-pointer"
             >
-              <option value="fummsa">FUMMSA Abeokuta (Federal Univ of Medicine &amp; Medical Sciences)</option>
+              <option value="all_nigerian">🎓 All Nigerian Universities &amp; Polytechnics (General)</option>
               <option value="unilag">University of Lagos (UNILAG)</option>
               <option value="ui">University of Ibadan (UI)</option>
               <option value="oau">Obafemi Awolowo University (OAU)</option>
@@ -337,7 +337,11 @@ export const FreshersHubTab: React.FC<FreshersHubTabProps> = ({
               <option value="abu">Ahmadu Bello University (ABU Zaria)</option>
               <option value="lasu">Lagos State University (LASU)</option>
               <option value="uniben">University of Benin (UNIBEN)</option>
-              <option value="all_nigerian">Other Federal / State University / Polytechnic</option>
+              <option value="unilorin">University of Ilorin (UNILORIN)</option>
+              <option value="futa">Federal University of Technology, Akure (FUTA)</option>
+              <option value="funaab">Federal University of Agriculture, Abeokuta (FUNAAB)</option>
+              <option value="fummsa">FUMMSA Abeokuta (Fed. Univ of Medicine &amp; Med. Sciences)</option>
+              <option value="polytechnic">Federal &amp; State Polytechnics (YabaTech, Nekede, etc.)</option>
             </select>
           </div>
 

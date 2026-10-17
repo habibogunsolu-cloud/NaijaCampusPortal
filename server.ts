@@ -11,7 +11,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+// Dev server must always run on port 3000 (nginx listens on 8080 and proxies to 3000)
+const portArgIndex = process.argv.indexOf('--port');
+const portArg = portArgIndex !== -1 && process.argv[portArgIndex + 1] ? Number(process.argv[portArgIndex + 1]) : null;
+const PORT = portArg || 3000;
 
 app.use(express.json());
 
@@ -210,11 +213,16 @@ Keep your explanation clear, practical, direct, and encouraging. Never be verbos
   }
 });
 
-// Serve static assets from public directory
 app.use(express.static(path.join(__dirname, 'public')));
 app.get(['/manifest.json', '/manifest.webmanifest'], (_req, res) => {
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.type('application/manifest+json');
   res.sendFile(path.join(__dirname, 'public', 'manifest.json'));
+});
+app.get('/sw.js', (_req, res) => {
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.type('application/javascript');
+  res.sendFile(path.join(__dirname, 'public', 'sw.js'));
 });
 
 // Vite Middleware setup
@@ -232,7 +240,7 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, () => {
+  app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server listening on port ${PORT}`);
   });
 }

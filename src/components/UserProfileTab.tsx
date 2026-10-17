@@ -24,6 +24,7 @@ import {
 } from '../data/readHubData';
 import { subscribeToAnalytics, AnalyticsStats } from '../utils/analyticsTracker';
 import { getSavedAdScript, saveAdScript } from '../utils/adScriptInjector';
+import { forcePwaSync } from '../utils/pwaUpdate';
 
 interface UserProfileTabProps {
   currentUser: User | null;
@@ -92,6 +93,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
   });
   const [customAdScript, setCustomAdScript] = useState(() => getSavedAdScript());
   const [isRefreshingAnalytics, setIsRefreshingAnalytics] = useState(false);
+  const [isSyncingPwa, setIsSyncingPwa] = useState(false);
 
   useEffect(() => {
     const unsub = subscribeToAnalytics((stats) => {
@@ -357,13 +359,27 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
             </p>
           </div>
         </div>
-        <button
-          onClick={onOpenInstallModal}
-          className="w-full sm:w-auto bg-amber-400 hover:bg-amber-300 text-emerald-950 font-black px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 shadow-sm transition cursor-pointer shrink-0"
-        >
-          <Smartphone className="w-4 h-4" />
-          <span>Install / Download App</span>
-        </button>
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto shrink-0">
+          <button
+            onClick={onOpenInstallModal}
+            className="w-full sm:w-auto bg-amber-400 hover:bg-amber-300 text-emerald-950 font-black px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
+          >
+            <Smartphone className="w-4 h-4" />
+            <span>Install App</span>
+          </button>
+          <button
+            onClick={async () => {
+              setIsSyncingPwa(true);
+              await forcePwaSync();
+            }}
+            disabled={isSyncingPwa}
+            className="w-full sm:w-auto bg-emerald-800/90 hover:bg-emerald-800 text-amber-300 border border-emerald-700 font-bold px-3 py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+            title="Purge cached app files & download latest changes"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isSyncingPwa ? 'animate-spin text-amber-400' : ''}`} />
+            <span>{isSyncingPwa ? 'Syncing...' : 'Sync Updates'}</span>
+          </button>
+        </div>
       </div>
 
       {/* Secret Publisher Section (100% Hidden PIN, Zero Hints) */}

@@ -48,10 +48,10 @@ const INITIAL_MESSAGES: ChatMessage[] = [
       "Hello scholar! I am Counselor Chioma, your Admissions & Freshers Academic Advisor.\n\n" +
       "I provide guidance on:\n" +
       "• 100L Freshers Physical Screening & Clearance Checklist\n" +
-      "• FUMMSA Abeokuta & Nigerian Universities Resumption\n" +
+      "• All Nigerian Universities & Polytechnics Resumption\n" +
       "• JAMB CAPS Acceptance & Original Admission Letter Printing\n" +
       "• 100L CGPA 5.0 Calculation & First Class Strategy\n" +
-      "• Official Subject Combinations & Cut-Off Marks\n\n" +
+      "• Official Departmental Cut-Off Marks & Subject Combos\n\n" +
       "What university, clearance document, or course can I help you with today?",
     timestamp: 'Just now',
   },
@@ -68,10 +68,10 @@ const CATEGORIZED_PROMPTS: QuickPromptCategory[] = [
     label: '100L & Clearance',
     icon: '🎓',
     prompts: [
-      'What are the official clearance documents and requirements for FUMMSA Abeokuta?',
-      'What documents must I carry to campus for physical screening?',
+      'What compulsory documents must I carry to campus for physical screening?',
       'How do I calculate 100L CGPA on 5.0 scale to stay in First Class?',
       'How do I accept admission on JAMB CAPS and pay university acceptance fee?',
+      'What are the official clearance steps for federal and state universities?',
     ],
   },
   {

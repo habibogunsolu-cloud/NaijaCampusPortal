@@ -21,6 +21,7 @@ import { usePWAInstall } from './hooks/usePWAInstall';
 import { safeOpenLink, safeOpenAdLink } from './utils/safeOpen';
 import { trackAppVisit, trackAdClick } from './utils/analyticsTracker';
 import { initSavedAdScript } from './utils/adScriptInjector';
+import { forcePwaSync } from './utils/pwaUpdate';
 import { AdBanner } from './components/AdBanner';
 import { InPagePushAd } from './components/InPagePushAd';
 import { NativeDisplayAd } from './components/NativeDisplayAd';
@@ -28,6 +29,7 @@ import { auth, onAuthStateChanged, User } from './firebase';
 import {
   GraduationCap,
   BookOpen,
+  RefreshCw,
   Award,
   Building2,
   Calendar,
@@ -87,11 +89,23 @@ export default function App() {
   });
   const [lastPlatformRotated, setLastPlatformRotated] = useState<'monetag' | 'secondary'>('secondary');
   const [dwellMinutes, setDwellMinutes] = useState<number>(0);
-
   const [adTriggerCount, setAdTriggerCount] = useState<number>(() => {
     const s = localStorage.getItem('naija_ad_count');
     return s ? Number(s) : 0;
   });
+
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [syncToastMessage, setSyncToastMessage] = useState<string>('');
+
+  const handleForceSync = async () => {
+    setIsSyncing(true);
+    setSyncToastMessage('Purging cache & syncing latest updates...');
+    try {
+      await forcePwaSync();
+    } catch {
+      window.location.reload();
+    }
+  };
 
   // Candidate Data
   const [candidateName, setCandidateName] = useState('Chinedu Okafor');
@@ -201,13 +215,25 @@ export default function App() {
                 </span>
               </div>
               <p className="text-[10px] sm:text-[11px] text-emerald-300 mt-0.5 truncate">
-                100L Freshers Clearance &bull; FUMMSA &bull; All Nigerian Institutions
+                All Nigerian Universities &bull; Polytechnics &bull; 100L Freshers Clearance
               </p>
             </div>
           </div>
 
-          {/* Multi-Exam Portal & Cut-Offs Share Button + PWA Download */}
+          {/* Sync App Button + PWA Download + Share Button */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            {/* Live Sync / Purge Cache Button for installed apps */}
+            <button
+              onClick={handleForceSync}
+              disabled={isSyncing}
+              className="bg-emerald-900/90 hover:bg-emerald-800 text-amber-300 border border-emerald-700/80 px-2 sm:px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-bold flex items-center gap-1 shadow-xs transition cursor-pointer shrink-0"
+              title="Sync & Update App to Latest Version"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin text-amber-400' : ''}`} />
+              <span className="hidden sm:inline">{isSyncing ? 'Syncing...' : 'Sync App'}</span>
+              <span className="sm:hidden">{isSyncing ? 'Syncing' : 'Sync'}</span>
+            </button>
+
             {!isInstalled && (
               <button
                 onClick={() => {
@@ -217,7 +243,7 @@ export default function App() {
                     setIsInstallModalOpen(true);
                   }
                 }}
-                className="bg-amber-400 hover:bg-amber-300 text-emerald-950 px-2.5 sm:px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-black flex items-center gap-1 shadow-sm transition cursor-pointer shrink-0"
+                className="bg-amber-400 hover:bg-amber-300 text-emerald-950 px-2 sm:px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-black flex items-center gap-1 shadow-sm transition cursor-pointer shrink-0"
                 title="Download / Install App to Phone"
               >
                 <Download className="w-3.5 h-3.5 stroke-[2.5]" />

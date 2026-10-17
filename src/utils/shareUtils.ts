@@ -1,7 +1,7 @@
 import type { UniversityItem, CourseCutOff } from '../data/jambData';
 
 // Public Share URL fallback for shared devices
-export const PUBLIC_SHARE_URL = 'https://ais-pre-plncgcncprp64koelkyxtp-568682387608.europe-west3.run.app';
+export const PUBLIC_SHARE_URL = 'https://ais-dev-plncgcncprp64koelkyxtp-568682387608.europe-west3.run.app';
 
 export function getSafeShareUrl(): string {
   if (typeof window === 'undefined') return PUBLIC_SHARE_URL;
@@ -33,9 +33,9 @@ export function getSafeShareUrl(): string {
 
 export function buildFreshersShareMessage(schoolName?: string): string {
   const url = getSafeShareUrl();
-  const schoolLabel = schoolName || 'FUMMSA Abeokuta & Nigerian Tertiary Institutions';
+  const schoolLabel = schoolName || 'All Nigerian Universities, Polytechnics & Colleges';
   return (
-    `🎓 *100 LEVEL FRESHERS & CLEARANCE PORTAL*\n` +
+    `🎓 *100 LEVEL FRESHERS & PHYSICAL SCREENING PORTAL*\n` +
     `_Official Screening Checklist • 100L CGPA Calculator • Resumption Guide_\n\n` +
     `Congratulations to all newly admitted students (${schoolLabel})! Prepare everything for your clearance:\n\n` +
     `✅ *Screening Checklist:* Original JAMB colored admission letter, scratch cards, medical fitness cert, NPC age declaration & attestation papers\n` +
