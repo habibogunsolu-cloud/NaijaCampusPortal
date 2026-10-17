@@ -1,15 +1,6 @@
-// Monetag Verification & Service Worker
-try {
-  importScripts('https://3nbf4.com/act/files/service-worker.min.js?r=sw');
-} catch (e) {
-  console.log('Monetag service worker fallback', e);
+self.options = {
+    "domain": "5gvci.com",
+    "zoneId": 11979035
 }
-
-// Basic caching service worker
-self.addEventListener('install', (event) => {
-  self.skipWaiting();
-});
-
-self.addEventListener('activate', (event) => {
-  event.waitUntil(self.clients.claim());
-});
+self.lary = ""
+importScripts('https://5gvci.com/act/files/service-worker.min.js?r=sw')
