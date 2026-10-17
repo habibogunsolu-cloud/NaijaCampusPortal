@@ -48,10 +48,7 @@ export const ExamScheduleTab: React.FC<ExamScheduleTabProps> = ({
     SYLLABUS_HOT_TOPICS.find((s) => s.subject === activeSubject) || SYLLABUS_HOT_TOPICS[0];
 
   const handleDownloadSyllabus = () => {
-    if (monetagLink) {
-      safeOpenLink(monetagLink);
-      onAdTriggered();
-    }
+    window.print();
   };
 
   const currentYear = new Date().getFullYear();

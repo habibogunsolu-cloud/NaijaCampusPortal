@@ -43,8 +43,15 @@ export const AdSettingsModal: React.FC<AdSettingsModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4">
       <div className="bg-white border border-slate-300 rounded-2xl max-w-lg w-full p-5 sm:p-6 text-slate-900 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
         <button
+          type="button"
           onClick={onClose}
-          className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 transition cursor-pointer"
+          onTouchEnd={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onClose();
+          }}
+          className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-xl hover:bg-slate-100 transition cursor-pointer active:scale-95"
+          aria-label="Close"
         >
           <X className="w-5 h-5" />
         </button>

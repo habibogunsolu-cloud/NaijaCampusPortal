@@ -225,10 +225,6 @@ export const FreshersHubTab: React.FC<FreshersHubTabProps> = ({
 
   // Handle Copy / Export Checklist
   const handleCopyChecklist = () => {
-    if (monetagLink) {
-      safeOpenAdLink(monetagLink);
-      if (onAdTriggered) onAdTriggered('freshers_checklist_copy');
-    }
 
     const completed = DEFAULT_CLEARANCE_DOCS.filter((d) => checkedDocIds.includes(d.id));
     const pending = DEFAULT_CLEARANCE_DOCS.filter((d) => !checkedDocIds.includes(d.id));
@@ -636,10 +632,6 @@ export const FreshersHubTab: React.FC<FreshersHubTabProps> = ({
           <button
             type="button"
             onClick={() => {
-              if (monetagLink) {
-                safeOpenAdLink(monetagLink);
-                if (onAdTriggered) onAdTriggered('freshers_save_cgpa_target');
-              }
               localStorage.setItem('freshers_target_courses', JSON.stringify(courses));
               setIsSavedNotice(true);
               setTimeout(() => setIsSavedNotice(false), 3000);

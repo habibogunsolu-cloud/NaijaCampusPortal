@@ -1018,6 +1018,7 @@ export default function App() {
               <AggregateCalculator
                 monetagLink={monetagLink}
                 onAdTriggered={handleRecordAdTrigger}
+                onNavigateToCutoffs={() => setCourseSubView('cutoffs')}
               />
             ) : courseSubView === 'schedule' ? (
               /* ================= EXAM DATES & LIVE TIMETABLES ================= */

@@ -5,6 +5,7 @@ import { safeOpenLink } from '../utils/safeOpen';
 interface AggregateCalculatorProps {
   monetagLink: string;
   onAdTriggered: () => void;
+  onNavigateToCutoffs?: () => void;
 }
 
 const GRADE_POINTS: Record<string, number> = {
@@ -22,6 +23,7 @@ const GRADE_POINTS: Record<string, number> = {
 export const AggregateCalculator: React.FC<AggregateCalculatorProps> = ({
   monetagLink,
   onAdTriggered,
+  onNavigateToCutoffs,
 }) => {
   const [jambScore, setJambScore] = useState<number>(240);
   const [grades, setGrades] = useState<string[]>(['A1', 'B2', 'B3', 'B2', 'A1']);
@@ -175,11 +177,16 @@ export const AggregateCalculator: React.FC<AggregateCalculatorProps> = ({
         </div>
 
         <button
-          onClick={handleTriggerAd}
+          onClick={() => {
+            if (onNavigateToCutoffs) {
+              onNavigateToCutoffs();
+            } else if (monetagLink) {
+              handleTriggerAd();
+            }
+          }}
           className="bg-emerald-800 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-lg text-xs flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs"
         >
-          <span>Check Merit Rankings</span>
-          <ExternalLink className="w-3.5 h-3.5" />
+          <span>Compare With University Cut-Offs &rarr;</span>
         </button>
       </div>
     </div>

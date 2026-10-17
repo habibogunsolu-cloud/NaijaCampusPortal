@@ -238,8 +238,14 @@ export const UniversityCutOffs: React.FC<UniversityCutOffsProps> = ({
             />
             {searchQuery && (
               <button
+                type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600"
+                onTouchEnd={(e) => {
+                  e.preventDefault();
+                  setSearchQuery('');
+                }}
+                className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                aria-label="Clear Search"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -478,8 +484,14 @@ export const UniversityCutOffs: React.FC<UniversityCutOffsProps> = ({
 
                 <button
                   onClick={closeCourseModal}
-                  className="w-8 h-8 rounded-full bg-emerald-900 hover:bg-emerald-800 text-white flex items-center justify-center transition cursor-pointer shrink-0"
-                  aria-label="Close"
+                  onTouchEnd={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    closeCourseModal();
+                  }}
+                  className="min-w-[40px] min-h-[40px] rounded-full bg-emerald-900 hover:bg-emerald-800 text-white flex items-center justify-center transition cursor-pointer shrink-0 active:scale-95"
+                  aria-label="Close Cut-Offs Modal"
+                  title="Close"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -561,8 +573,14 @@ export const UniversityCutOffs: React.FC<UniversityCutOffsProps> = ({
                   />
                   {modalSearch && (
                     <button
+                      type="button"
                       onClick={() => setModalSearch('')}
-                      className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600"
+                      onTouchEnd={(e) => {
+                        e.preventDefault();
+                        setModalSearch('');
+                      }}
+                      className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                      aria-label="Clear Course Search"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>

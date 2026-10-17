@@ -856,16 +856,13 @@ export const CbtPracticeTab: React.FC<CbtPracticeTabProps> = ({
                   </div>
                   <button
                     onClick={() => {
-                      if (onAdTriggered) onAdTriggered();
-                      if (monetagLink) {
-                        safeOpenAdLink(monetagLink);
-                        trackAdClick('cbt_result_pdf');
-                      }
+                      window.print();
                     }}
                     className="w-full sm:w-auto bg-emerald-950 hover:bg-emerald-900 text-amber-300 border border-amber-400 font-black text-xs px-5 py-3 rounded-xl flex items-center justify-center gap-2 shadow-md transition cursor-pointer shrink-0"
+                    title="Print or Save PDF Result Certificate"
                   >
                     <Download className="w-4 h-4 text-amber-400" />
-                    <span>Download Result Certificate (PDF)</span>
+                    <span>Print / Save Certificate (PDF)</span>
                   </button>
                 </div>
 
@@ -873,16 +870,15 @@ export const CbtPracticeTab: React.FC<CbtPracticeTabProps> = ({
                 <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
                   <button
                     onClick={() => {
-                      if (onAdTriggered) onAdTriggered();
-                      if (monetagLink) {
-                        safeOpenAdLink(monetagLink);
-                        trackAdClick('cbt_past_questions');
-                      }
+                      setIsReviewOpen(true);
+                      setTimeout(() => {
+                        window.scrollTo({ top: 600, behavior: 'smooth' });
+                      }, 100);
                     }}
                     className="w-full sm:flex-1 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black py-3 px-4 rounded-xl text-xs flex items-center justify-center gap-2 shadow-xs transition cursor-pointer"
                   >
                     <Zap className="w-4 h-4 fill-slate-950" />
-                    <span>Unlock 2024 Past Questions &amp; Traps</span>
+                    <span>View 2024 Past Questions &amp; Traps</span>
                   </button>
 
                   <button

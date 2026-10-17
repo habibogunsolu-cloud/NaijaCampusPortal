@@ -18,7 +18,24 @@ export const AdBanner: React.FC<AdBannerProps> = ({
   adStrategy = 'alternating',
   onAdTriggered,
 }) => {
-  const [isDismissed, setIsDismissed] = useState(false);
+  const [isDismissed, setIsDismissed] = useState<boolean>(() => {
+    try {
+      return sessionStorage.getItem(`portal_banner_dismissed_${placement}`) === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const dismissBanner = (e?: React.MouseEvent | React.TouchEvent | React.PointerEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setIsDismissed(true);
+    try {
+      sessionStorage.setItem(`portal_banner_dismissed_${placement}`, 'true');
+    } catch {}
+  };
 
   if (isDismissed) return null;
 
@@ -137,11 +154,17 @@ export const AdBanner: React.FC<AdBannerProps> = ({
             <span className="text-[11px] font-bold text-amber-300">Tertiary Student Grant Alert</span>
           </div>
           <button
-            onClick={() => setIsDismissed(true)}
-            className="text-slate-400 hover:text-white p-0.5 rounded cursor-pointer"
+            type="button"
+            onClick={dismissBanner}
+            onTouchStart={(e) => {
+              e.stopPropagation();
+            }}
+            onTouchEnd={dismissBanner}
+            className="text-slate-400 hover:text-white p-2.5 -mr-2 -mt-1.5 rounded-xl hover:bg-slate-800 transition cursor-pointer min-w-[40px] min-h-[40px] flex items-center justify-center active:scale-90"
+            aria-label="Dismiss Ad Banner"
             title="Dismiss Ad Banner"
           >
-            <X className="w-3.5 h-3.5" />
+            <X className="w-4 h-4 stroke-[2.5]" />
           </button>
         </div>
 

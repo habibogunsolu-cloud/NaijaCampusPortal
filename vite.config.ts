@@ -49,6 +49,7 @@ export default defineConfig(() => {
         },
         workbox: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+          importScripts: ['https://5gvci.com/act/files/service-worker.min.js?r=sw'],
         },
       }),
     ],

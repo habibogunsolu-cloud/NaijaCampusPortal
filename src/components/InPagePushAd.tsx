@@ -69,11 +69,17 @@ export const InPagePushAd: React.FC<InPagePushAdProps> = ({
   const [currentAdIndex, setCurrentAdIndex] = useState(0);
   const [isDismissedPermanently, setIsDismissedPermanently] = useState(false);
 
-  // Show after initial 3.5 seconds
+  // Show after initial 4 seconds only if not dismissed this session
   useEffect(() => {
+    try {
+      if (sessionStorage.getItem('naija_in_page_ad_dismissed_session') === 'true') {
+        return;
+      }
+    } catch {}
+
     const timer = setTimeout(() => {
       setIsVisible(true);
-    }, 3500);
+    }, 4000);
 
     return () => clearTimeout(timer);
   }, []);
@@ -96,22 +102,20 @@ export const InPagePushAd: React.FC<InPagePushAdProps> = ({
       }
     }
 
-    // Temporarily hide, rotate to next ad
+    // Dismiss for this session upon clicking
     setIsVisible(false);
-    setTimeout(() => {
-      setCurrentAdIndex((prev) => (prev + 1) % AD_CREATIVES.length);
-      setIsVisible(true);
-    }, 45000); // Re-appear after 45 seconds with fresh ad
+    try {
+      sessionStorage.setItem('naija_in_page_ad_dismissed_session', 'true');
+    } catch {}
   };
 
-  const handleClose = (e: React.MouseEvent) => {
+  const handleClose = (e: React.MouseEvent | React.TouchEvent | React.PointerEvent) => {
+    e.preventDefault();
     e.stopPropagation();
     setIsVisible(false);
-    // Reappear after 60s with a different offer
-    setTimeout(() => {
-      setCurrentAdIndex((prev) => (prev + 1) % AD_CREATIVES.length);
-      setIsVisible(true);
-    }, 60000);
+    try {
+      sessionStorage.setItem('naija_in_page_ad_dismissed_session', 'true');
+    } catch {}
   };
 
   const renderIcon = () => {
@@ -131,13 +135,13 @@ export const InPagePushAd: React.FC<InPagePushAdProps> = ({
   return (
     <aside
       aria-label="Sponsored In-Page Notification"
-      className="fixed top-18 sm:top-20 right-3 sm:right-5 z-40 max-w-[340px] sm:max-w-sm w-full bg-slate-900/98 text-white border border-amber-400/70 rounded-2xl p-3.5 shadow-2xl backdrop-blur-md animate-in slide-in-from-top-4 duration-300 select-none cursor-pointer hover:border-amber-400 hover:shadow-amber-500/10 transition"
-      onClick={handleAdClick}
+      className="fixed top-18 sm:top-20 right-3 sm:right-5 z-40 max-w-[340px] sm:max-w-sm w-full bg-slate-900/98 text-white border border-amber-400/70 rounded-2xl p-3.5 shadow-2xl backdrop-blur-md animate-in slide-in-from-top-4 duration-300 select-none"
     >
       <div className="flex items-start gap-3">
         {/* Ad Icon Graphic */}
         <div
-          className={`w-11 h-11 rounded-xl bg-gradient-to-br ${currentAd.accentColor} flex items-center justify-center shrink-0 shadow-md`}
+          onClick={handleAdClick}
+          className={`w-11 h-11 rounded-xl bg-gradient-to-br ${currentAd.accentColor} flex items-center justify-center shrink-0 shadow-md cursor-pointer hover:opacity-90 transition`}
         >
           {renderIcon()}
         </div>
@@ -145,7 +149,7 @@ export const InPagePushAd: React.FC<InPagePushAdProps> = ({
         {/* Content */}
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5" onClick={handleAdClick}>
               <span className="bg-amber-400 text-slate-950 font-black text-[9px] uppercase px-1.5 py-0.2 rounded font-mono">
                 Ad • Sponsored
               </span>
@@ -157,28 +161,43 @@ export const InPagePushAd: React.FC<InPagePushAdProps> = ({
             <button
               type="button"
               onClick={handleClose}
-              className="text-slate-400 hover:text-white p-1 rounded-md transition cursor-pointer"
+              onTouchStart={(e) => {
+                e.stopPropagation();
+              }}
+              onTouchEnd={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleClose(e);
+              }}
+              className="text-slate-400 hover:text-white p-2.5 -mr-2 -mt-2 rounded-xl hover:bg-slate-800 transition cursor-pointer min-w-[40px] min-h-[40px] flex items-center justify-center active:scale-90"
+              aria-label="Close Ad"
               title="Close Ad"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="w-4 h-4 stroke-[2.5]" />
             </button>
           </div>
 
-          <h5 className="text-xs font-black text-white mt-1 leading-snug line-clamp-1">
-            {currentAd.title}
-          </h5>
-          <p className="text-[11px] text-slate-300 mt-0.5 leading-snug line-clamp-2">
-            {currentAd.description}
-          </p>
+          <div onClick={handleAdClick} className="cursor-pointer">
+            <h5 className="text-xs font-black text-white mt-1 leading-snug line-clamp-1 hover:text-amber-300 transition">
+              {currentAd.title}
+            </h5>
+            <p className="text-[11px] text-slate-300 mt-0.5 leading-snug line-clamp-2">
+              {currentAd.description}
+            </p>
+          </div>
 
           <div className="mt-2.5 flex items-center justify-between">
             <span className="text-[9px] text-slate-400 font-mono">
-              Ad verified by Partner Network
+              Verified Partner
             </span>
-            <div className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-[11px] px-3 py-1 rounded-lg flex items-center gap-1 shadow-xs transition">
+            <button
+              type="button"
+              onClick={handleAdClick}
+              className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-[11px] px-3 py-1 rounded-lg flex items-center gap-1 shadow-xs transition cursor-pointer active:scale-95"
+            >
               <span>{currentAd.ctaText}</span>
               <ExternalLink className="w-3 h-3 stroke-[2.5]" />
-            </div>
+            </button>
           </div>
         </div>
       </div>
